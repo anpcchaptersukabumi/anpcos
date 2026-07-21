@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Dashboard | ANPC Chapter Sukabumi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  :root { --gold:#D4AF37; --red:#B91C1C; --red-bright:#E11D1D; --black:#060606; --black-2:#0D0D0D; --black-3:#161412; --black-4:#1A1714; --grey:#9A9690; --grey-light:#C9C5BE; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--black); color:#fff; font-family:'Rajdhani',sans-serif; min-height:100vh; }
+  .hidden { display:none !important; }
+  #loginGate { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem; }
+  .login-box { background:linear-gradient(160deg,var(--black-3),var(--black-2)); border:1px solid rgba(212,175,55,0.25); padding:2.5rem; width:100%; max-width:380px; text-align:center; }
+  .login-box h1 { font-family:'Cinzel',serif; font-weight:700; color:var(--gold); font-size:1.5rem; margin-bottom:0.4rem; }
+  .login-box p { color:var(--grey); font-size:0.85rem; margin-bottom:1.5rem; }
+  .login-box input { width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:12px 14px; font-family:'Rajdhani',sans-serif; font-size:1rem; outline:none; margin-bottom:1rem; }
+  .login-box input:focus { border-color:var(--gold); }
+  .login-box button { width:100%; background:linear-gradient(135deg,var(--red-bright),var(--red)); color:#fff; border:none; padding:13px; font-weight:700; font-size:0.9rem; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; }
+  .login-error { color:#F87171; font-size:0.82rem; margin-top:10px; font-weight:600; min-height:18px; }
+  #dashboard { display:none; }
+  header { border-bottom:1px solid rgba(212,175,55,0.15); padding:1.2rem 2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; background:var(--black-2); }
+  header h1 { font-family:'Cinzel',serif; font-weight:700; color:var(--gold); font-size:1.2rem; }
+  header .sub { font-size:0.7rem; color:var(--grey); font-weight:600; letter-spacing:1px; }
+  .btn-outline { background:transparent; border:1px solid var(--gold); color:var(--gold); padding:9px 16px; font-weight:700; font-size:0.78rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
+  .btn-outline:hover { background:rgba(212,175,55,0.1); }
+  .search-wrap input { width:260px; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:9px 12px; font-family:'Rajdhani',sans-serif; font-size:0.88rem; outline:none; }
+  .search-wrap input:focus { border-color:var(--gold); }
+  main { padding:1.5rem 2rem; max-width:1100px; margin:0 auto; }
+  .tabs { display:flex; gap:10px; margin-bottom:1.6rem; flex-wrap:wrap; }
+  .tab-btn { display:flex; align-items:center; gap:8px; background:var(--black-3); border:1px solid rgba(212,175,55,0.12); color:var(--grey); padding:9px 16px; font-weight:700; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
+  .tab-btn.active { background:rgba(212,175,55,0.12); border-color:var(--gold); color:var(--gold); }
+  .tab-btn .count { background:#2a2620; color:var(--grey); border-radius:10px; padding:1px 8px; font-size:0.72rem; font-weight:700; }
+  .tab-btn.active .count { background:var(--gold); color:#000; }
+  .empty-state { text-align:center; padding:4rem 0; color:#6b665e; }
+  .loading-state { text-align:center; padding:4rem 0; color:var(--grey); }
+  .member-card { background:var(--black-3); border:1px solid rgba(212,175,55,0.1); padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:10px; }
+  .member-card .nama { font-weight:700; font-size:1.02rem; }
+  .member-meta { display:flex; gap:14px; flex-wrap:wrap; margin-top:6px; font-size:0.8rem; color:var(--grey); font-weight:500; }
+  .member-tahun { margin-top:6px; font-size:0.78rem; color:var(--gold); font-weight:600; }
+  .member-gabung { margin-top:3px; font-size:0.76rem; color:var(--grey); font-weight:500; }
+  .member-saran { margin-top:8px; padding:8px 12px; background:rgba(212,175,55,0.06); border-left:2px solid rgba(212,175,55,0.3); font-size:0.79rem; color:#C9C5BE; line-height:1.5; font-style:italic; max-width:560px; }
+  .badge { font-size:0.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 10px; border:1px solid; }
+  .badge-pending { color:var(--gold); border-color:var(--gold); }
+  .badge-approved { color:#4ADE80; border-color:#4ADE80; }
+  .badge-rejected { color:#F87171; border-color:#F87171; }
+  .action-row { display:flex; align-items:center; gap:10px; }
+  .icon-btn { width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center; border:1px solid; background:transparent; font-size:1rem; }
+  .icon-btn.approve { border-color:#4ADE80; color:#4ADE80; background:rgba(74,222,128,0.1); }
+  .icon-btn.reject { border-color:#F87171; color:#F87171; background:rgba(248,113,113,0.1); }
+  .icon-btn.delete { border-color:rgba(255,255,255,0.15); color:var(--grey); background:rgba(255,255,255,0.04); }
+  .toast { position:fixed; top:20px; right:20px; z-index:200; background:var(--black-4); border:1px solid var(--gold); color:var(--gold); padding:12px 20px; font-weight:600; font-size:0.88rem; box-shadow:0 8px 30px rgba(0,0,0,0.5); display:none; }
+</style>
+</head>
+<body>
+
+<div id="loginGate">
+  <div class="login-box">
+    <h1>🛡️ Admin Dashboard</h1>
+    <p>ANPC Chapter Sukabumi</p>
+    <input type="password" id="adminPass" placeholder="Masukkan password admin" onkeydown="if(event.key==='Enter') checkLogin()"/>
+    <button onclick="checkLogin()">Masuk</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div id="dashboard">
+  <header>
+    <div>
+      <h1>Dashboard Admin</h1>
+      <div class="sub">ANPC CHAPTER SUKABUMI</div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Cari nama, WA, domisili..." oninput="renderList()"/>
+      </div>
+      <button class="btn-outline" onclick="logout()">Keluar</button>
+    </div>
+  </header>
+  <main>
+    <div class="tabs" id="tabs"></div>
+    <div id="listContainer"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_PASSWORD = "anpc2026"; // <-- ganti kalau mau password baru
+
+let allMembers = [];
+let activeTab = "pending";
+
+function checkLogin() {
+  const val = document.getElementById('adminPass').value;
+  if (val === ADMIN_PASSWORD) {
+    sessionStorage.setItem('anpc_admin_ok', '1');
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadMembers();
+  } else {
+    document.getElementById('loginError').textContent = 'Password salah. Coba lagi.';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('anpc_admin_ok');
+  location.reload();
+}
+
+if (sessionStorage.getItem('anpc_admin_ok') === '1') {
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  window.addEventListener('DOMContentLoaded', loadMembers);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+async function loadMembers() {
+  document.getElementById('listContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('members').select('*').order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('listContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allMembers = data || [];
+  renderTabs();
+  renderList();
+}
+
+function renderTabs() {
+  const counts = {
+    pending: allMembers.filter(m => m.status === 'pending').length,
+    approved: allMembers.filter(m => m.status === 'approved').length,
+    rejected: allMembers.filter(m => m.status === 'rejected').length,
+    all: allMembers.length,
+  };
+  const tabDefs = [
+    { key: 'pending', label: 'Menunggu' },
+    { key: 'approved', label: 'Disetujui' },
+    { key: 'rejected', label: 'Ditolak' },
+    { key: 'all', label: 'Semua' },
+  ];
+  document.getElementById('tabs').innerHTML = tabDefs.map(t => `
+    <button class="tab-btn ${activeTab === t.key ? 'active' : ''}" onclick="setTab('${t.key}')">
+      ${t.label} <span class="count">${counts[t.key]}</span>
+    </button>
+  `).join('') + `<button class="btn-outline" style="margin-left:auto;" onclick="loadMembers()">⟳ Muat Ulang</button>`;
+}
+
+function setTab(key) {
+  activeTab = key;
+  renderTabs();
+  renderList();
+}
+
+function renderList() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let filtered = activeTab === 'all' ? allMembers : allMembers.filter(m => m.status === activeTab);
+  if (search) {
+    filtered = filtered.filter(m => (m.nama + m.whatsapp + (m.domisili||'')).toLowerCase().includes(search));
+  }
+  const container = document.getElementById('listContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Tidak ada data member di kategori ini.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(m => {
+    const date = new Date(m.created_at).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    const badgeClass = m.status === 'approved' ? 'badge-approved' : m.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+    const badgeLabel = m.status === 'approved' ? 'Disetujui' : m.status === 'rejected' ? 'Ditolak' : 'Menunggu';
+    return `
+      <div class="member-card">
+        <div style="min-width:200px;flex:1;">
+          <div class="nama">${escapeHtml(m.nama)}</div>
+          <div class="member-meta">
+            <span>📱 ${escapeHtml(m.whatsapp)}</span>
+            ${m.domisili ? `<span>📍 ${escapeHtml(m.domisili)}</span>` : ''}
+            <span>📅 ${date}</span>
+          </div>
+          <div class="member-tahun">${escapeHtml(m.tahun_pcx)}</div>
+          ${m.tahun_gabung ? `<div class="member-gabung">🗓️ Gabung ANPC sejak: <strong style="color:var(--gold)">${escapeHtml(m.tahun_gabung)}</strong></div>` : ''}
+          ${m.kritik_saran ? `<div class="member-saran">💬 "${escapeHtml(m.kritik_saran)}"</div>` : ''}
+        </div>
+        <div class="action-row">
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+          ${m.status !== 'approved' ? `<button class="icon-btn approve" onclick="updateStatus('${m.id}','approved')" title="Setujui">✓</button>` : ''}
+          ${m.status !== 'rejected' ? `<button class="icon-btn reject" onclick="updateStatus('${m.id}','rejected')" title="Tolak">✕</button>` : ''}
+          <button class="icon-btn delete" onclick="deleteMember('${m.id}','${escapeHtml(m.nama)}')" title="Hapus">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function updateStatus(id, status) {
+  const { error } = await supabaseClient.from('members').update({ status }).eq('id', id);
+  if (error) { showToast('Gagal memperbarui status'); return; }
+  const m = allMembers.find(x => x.id === id);
+  if (m) m.status = status;
+  renderTabs();
+  renderList();
+  showToast(status === 'approved' ? 'Member disetujui ✓' : 'Member ditolak');
+}
+
+async function deleteMember(id, nama) {
+  if (!confirm(`Hapus data ${nama}? Tindakan ini tidak bisa dibatalkan.`)) return;
+  const { error } = await supabaseClient.from('members').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus data'); return; }
+  allMembers = allMembers.filter(x => x.id !== id);
+  renderTabs();
+  renderList();
+  showToast(`Data ${nama} dihapus`);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
