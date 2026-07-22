@@ -581,16 +581,16 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 
 <div class="modal-overlay hidden" id="eventDetailModal">
   <div class="modal-box wide" style="max-height:85vh; overflow-y:auto;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-      <div>
-        <span class="event-badge" id="detailBadge" style="position:static; display:inline-block; margin-bottom:8px;"></span>
-        <h3 id="detailNama" style="font-family:'Cinzel',serif; color:var(--white); font-size:1.25rem;"></h3>
+   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+      <div style="flex:1;">
+        <div class="event-eyebrow" id="detailBadge"></div>
+        <h3 id="detailNama" style="font-family:'Cinzel',serif; color:var(--white); font-size:1.3rem; line-height:1.3;"></h3>
       </div>
       <button class="modal-close-btn" onclick="closeEventDetail()">✕</button>
     </div>
-    <div class="event-meta" style="margin-top:10px;">
-      <span class="event-pill" id="detailTanggal"></span>
-      <span class="event-pill hidden" id="detailJarak"></span>
+    <div class="event-stats" style="margin-top:16px;">
+      <div class="stat-box"><div class="stat-label">Tanggal</div><div class="stat-value" id="detailTanggal"></div></div>
+      <div class="stat-box hidden" id="detailJarakBox"><div class="stat-label">Estimasi Jarak</div><div class="stat-value" id="detailJarak"></div></div>
     </div>
     <div class="detail-tabs">
       <button class="detail-tab active" id="tabRute" onclick="switchDetailTab('rute')">Info Rute & Tikum</button>
