@@ -781,6 +781,7 @@ async function loadEvents() {
 }
 
 function renderEvents(events) {
+  allEventsData = events;
   const container = document.getElementById('eventListContainer');
   if (events.length === 0) {
     container.innerHTML = `
@@ -795,24 +796,67 @@ function renderEvents(events) {
   container.innerHTML = events.map(e => {
     const joined = myRsvpIds.has(e.id);
     const isPast = e.tanggal < today;
-    const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
     return `
       <div class="event-card">
-        <div class="event-info">
-          <div class="nama">${escapeHtmlP(e.nama)}</div>
+        ${e.gambar_url ? `<div class="event-thumb"><img src="${e.gambar_url}" alt=""/></div>` : `<div class="event-thumb event-thumb-placeholder">🏍️</div>`}
+        ${e.is_resmi !== false ? `<span class="event-badge">● RESMI</span>` : ''}
+        <div class="event-body">
+          <div class="event-title">${escapeHtmlP(e.nama)}</div>
           <div class="event-meta">
-            <span>📅 ${tanggalFmt}</span>
-            ${e.lokasi ? `<span>📍 ${escapeHtmlP(e.lokasi)}</span>` : ''}
+            <span class="event-pill">📅 ${tanggalFmt}</span>
+            ${e.jarak ? `<span class="event-pill">🏍️ ${escapeHtmlP(e.jarak)}</span>` : ''}
+            ${e.lokasi ? `<span class="event-pill">📍 ${escapeHtmlP(e.lokasi)}</span>` : ''}
           </div>
-          ${e.deskripsi ? `<div class="event-desc">${escapeHtmlP(e.deskripsi)}</div>` : ''}
+          <div class="event-actions">
+            <button class="event-detail-link" onclick="openEventDetail('${e.id}')">Klik untuk detail →</button>
+            ${isPast
+              ? `<button class="btn-rsvp" disabled>Sudah Lewat</button>`
+              : `<button class="btn-rsvp ${joined ? 'joined' : ''}" onclick="toggleRsvp('${e.id}', this)">${joined ? '✓ Ikut Kopdar' : 'Ikut Kopdar'}</button>`
+            }
+          </div>
         </div>
-        ${isPast
-          ? `<button class="btn-rsvp" disabled>Sudah Lewat</button>`
-          : `<button class="btn-rsvp ${joined ? 'joined' : ''}" onclick="toggleRsvp('${e.id}', this)">${joined ? '✓ Ikut Kopdar' : 'Ikut Kopdar'}</button>`
-        }
       </div>
     `;
   }).join('');
+}
+
+function openEventDetail(eventId) {
+  const e = allEventsData.find(x => x.id === eventId);
+  if (!e) return;
+  const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+
+  document.getElementById('detailBadge').textContent = e.is_resmi !== false ? '● AGENDA RESMI CHAPTER' : '● AGENDA KOMUNITAS';
+  document.getElementById('detailNama').textContent = e.nama;
+  document.getElementById('detailTanggal').textContent = '📅 ' + tanggalFmt;
+  const jarakEl = document.getElementById('detailJarak');
+  if (e.jarak) { jarakEl.textContent = '🏍️ ' + e.jarak; jarakEl.classList.remove('hidden'); }
+  else { jarakEl.classList.add('hidden'); }
+
+  document.getElementById('detailDeskripsi').textContent = e.deskripsi || 'Belum ada deskripsi.';
+  const ruteLines = (e.rute_info || '').split('\n').filter(l => l.trim());
+  document.getElementById('detailRuteList').innerHTML = ruteLines.length
+    ? ruteLines.map(l => `<div class="detail-list-item">${escapeHtmlP(l)}</div>`).join('')
+    : '<div style="color:var(--grey);">Belum ada info rute.</div>';
+
+  const itineraryLines = (e.itinerary || '').split('\n').filter(l => l.trim());
+  document.getElementById('detailItineraryList').innerHTML = itineraryLines.length
+    ? itineraryLines.map(l => `<div class="detail-list-item">${escapeHtmlP(l)}</div>`).join('')
+    : '<div style="color:var(--grey);">Belum ada itinerary.</div>';
+
+  switchDetailTab('rute');
+  document.getElementById('eventDetailModal').classList.remove('hidden');
+}
+
+function closeEventDetail() {
+  document.getElementById('eventDetailModal').classList.add('hidden');
+}
+
+function switchDetailTab(tab) {
+  document.getElementById('tabRute').classList.toggle('active', tab === 'rute');
+  document.getElementById('tabItinerary').classList.toggle('active', tab === 'itinerary');
+  document.getElementById('paneRute').classList.toggle('hidden', tab !== 'rute');
+  document.getElementById('paneItinerary').classList.toggle('hidden', tab !== 'itinerary');
 }
 
 async function toggleRsvp(eventId, btn) {
