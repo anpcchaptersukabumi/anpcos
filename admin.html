@@ -111,9 +111,24 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal-overlay hidden" id="editNoModal">
+  <div class="modal-box">
+    <h3>Edit No. Anggota</h3>
+    <p id="editNoName" style="color:var(--grey); margin-bottom:12px; font-size:0.9rem;"></p>
+    <input type="text" id="editNoInput" placeholder="Contoh: ANPC-SKB-014"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeEditNoModal()">Batal</button>
+      <button class="btn-solid" onclick="saveNoAnggota()">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let allMembers = [];
 let activeTab = "pending";
+let allProfiles = [];
+let activeProfileTab = "aktif";
+let activeSection = "members";
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
