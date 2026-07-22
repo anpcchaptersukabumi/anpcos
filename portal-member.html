@@ -522,7 +522,15 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <h1 class="page-title">PROFIL <span class="gold">MEMBER</span></h1>
           <div class="page-divider"></div>
         </div>
-        <div class="profil-card">
+       <div class="profil-card">
+          <div style="display:flex; align-items:center; gap:1.2rem; margin-bottom:1.6rem;">
+            <div class="profil-avatar" id="profilAvatar">?</div>
+            <div>
+              <input type="file" id="avatarFile" accept="image/*" style="display:none;" onchange="uploadAvatar(event)"/>
+              <button class="btn-photo" id="avatarBtn" onclick="document.getElementById('avatarFile').click()">Ganti Foto Profil</button>
+              <div style="font-size:0.72rem; color:var(--grey); margin-top:6px;">JPG/PNG, maksimal 2MB</div>
+            </div>
+          </div>
           <div class="f-group">
             <label class="f-label">Nama Lengkap</label>
             <input type="text" class="f-input" id="pNama" placeholder="Nama lengkap"/>
