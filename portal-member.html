@@ -815,6 +815,11 @@ async function loadEvents() {
 function renderEvents(events) {
   allEventsData = events;
   const container = document.getElementById('eventListContainer');
+  const today = new Date().toISOString().slice(0, 10);
+
+  const upcomingCount = events.filter(e => e.tanggal >= today).length;
+  document.getElementById('eventCountPill').textContent = `${upcomingCount} AGENDA MENDATANG`;
+
   if (events.length === 0) {
     container.innerHTML = `
       <div style="color:var(--grey);font-size:.9rem;padding:3rem 0;text-align:center;">
@@ -824,24 +829,32 @@ function renderEvents(events) {
       </div>`;
     return;
   }
-  const today = new Date().toISOString().slice(0, 10);
+
   container.innerHTML = events.map(e => {
     const joined = myRsvpIds.has(e.id);
     const isPast = e.tanggal < today;
     const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    const countdown = getCountdownLabel(e.tanggal, today);
+
     return `
       <div class="event-card">
-        ${e.gambar_url ? `<div class="event-thumb"><img src="${e.gambar_url}" alt=""/></div>` : `<div class="event-thumb event-thumb-placeholder">🏍️</div>`}
-        ${e.is_resmi !== false ? `<span class="event-badge">● RESMI</span>` : ''}
+        <div class="event-thumb-wrap">
+          ${e.gambar_url ? `<img src="${e.gambar_url}" alt=""/>` : `<div class="event-thumb-icon">🏍️</div>`}
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          ${e.is_resmi !== false ? `<span class="event-badge">RESMI</span>` : ''}
+        </div>
         <div class="event-body">
+          <div class="event-eyebrow ${countdown.past ? 'past' : ''}">${countdown.text}</div>
           <div class="event-title">${escapeHtmlP(e.nama)}</div>
-          <div class="event-meta">
-            <span class="event-pill">📅 ${tanggalFmt}</span>
-            ${e.jarak ? `<span class="event-pill">🏍️ ${escapeHtmlP(e.jarak)}</span>` : ''}
-            ${e.lokasi ? `<span class="event-pill">📍 ${escapeHtmlP(e.lokasi)}</span>` : ''}
+          <div class="event-stats">
+            <div class="stat-box"><div class="stat-label">Tanggal</div><div class="stat-value">📅 ${tanggalFmt}</div></div>
+            ${e.jarak ? `<div class="stat-box"><div class="stat-label">Jarak</div><div class="stat-value">🏍️ ${escapeHtmlP(e.jarak)}</div></div>` : ''}
+            ${e.lokasi ? `<div class="stat-box"><div class="stat-label">Lokasi</div><div class="stat-value">📍 ${escapeHtmlP(e.lokasi)}</div></div>` : ''}
           </div>
+          <div class="event-divider"></div>
           <div class="event-actions">
-            <button class="event-detail-link" onclick="openEventDetail('${e.id}')">Klik untuk detail →</button>
+            <button class="event-detail-link" onclick="openEventDetail('${e.id}')">Lihat Detail →</button>
             ${isPast
               ? `<button class="btn-rsvp" disabled>Sudah Lewat</button>`
               : `<button class="btn-rsvp ${joined ? 'joined' : ''}" onclick="toggleRsvp('${e.id}', this)">${joined ? '✓ Ikut Kopdar' : 'Ikut Kopdar'}</button>`
@@ -851,6 +864,13 @@ function renderEvents(events) {
       </div>
     `;
   }).join('');
+}
+
+function getCountdownLabel(tanggalStr, todayStr) {
+  const diffDays = Math.round((new Date(tanggalStr) - new Date(todayStr)) / 86400000);
+  if (diffDays === 0) return { text: '● BERLANGSUNG HARI INI', past: false };
+  if (diffDays > 0) return { text: `● ${diffDays} HARI LAGI`, past: false };
+  return { text: 'SUDAH SELESAI', past: true };
 }
 
 function openEventDetail(eventId) {
