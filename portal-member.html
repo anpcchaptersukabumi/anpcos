@@ -787,7 +787,8 @@ function renderDash() {
   document.getElementById('ktaNama').textContent = p.nama || '—';
   document.getElementById('ktaNo').textContent = 'NO. ' + (p.no_anggota || 'PENDING');
   document.getElementById('ktaPcx').textContent = p.tahun_pcx || '—';
-  document.getElementById('ktaDomisili').textContent = '📍 ' + (p.domisili || '—');
+ document.getElementById('ktaDomisili').textContent = '📍 ' + (p.domisili || '—');
+  document.getElementById('ktaSosmed').innerHTML = renderSosmedIcons(p);
   document.getElementById('ktaPhoto').innerHTML = avatarHtml;
   document.getElementById('profilAvatar').innerHTML = avatarHtml;
   const tahun = new Date(p.created_at).getFullYear();
