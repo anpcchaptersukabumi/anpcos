@@ -702,12 +702,92 @@ function shareKTA() {
   }
 }
 
+let myRsvpIds = new Set();
+
+async function loadEvents() {
+  const container = document.getElementById('eventListContainer');
+  container.innerHTML = '<div style="color:var(--grey);text-align:center;padding:2rem 0;">Memuat data event...</div>';
+
+  const [{ data: eventsData, error: eventsError }, { data: rsvpData }] = await Promise.all([
+    sb.from('events').select('*').order('tanggal', { ascending: true }),
+    sb.from('event_members').select('event_id').eq('member_id', currentUser.id),
+  ]);
+
+  if (eventsError) {
+    container.innerHTML = '<div style="color:#F87171;text-align:center;padding:2rem 0;">Gagal memuat data event.</div>';
+    return;
+  }
+
+  myRsvpIds = new Set((rsvpData || []).map(r => r.event_id));
+  renderEvents(eventsData || []);
+}
+
+function renderEvents(events) {
+  const container = document.getElementById('eventListContainer');
+  if (events.length === 0) {
+    container.innerHTML = `
+      <div style="color:var(--grey);font-size:.9rem;padding:3rem 0;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">📅</div>
+        <div style="font-weight:600;color:var(--grey-l);margin-bottom:.5rem;">Belum Ada Event</div>
+        <div>Pantau terus, kopdar berikutnya akan segera diumumkan!</div>
+      </div>`;
+    return;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  container.innerHTML = events.map(e => {
+    const joined = myRsvpIds.has(e.id);
+    const isPast = e.tanggal < today;
+    const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    return `
+      <div class="event-card">
+        <div class="event-info">
+          <div class="nama">${escapeHtmlP(e.nama)}</div>
+          <div class="event-meta">
+            <span>📅 ${tanggalFmt}</span>
+            ${e.lokasi ? `<span>📍 ${escapeHtmlP(e.lokasi)}</span>` : ''}
+          </div>
+          ${e.deskripsi ? `<div class="event-desc">${escapeHtmlP(e.deskripsi)}</div>` : ''}
+        </div>
+        ${isPast
+          ? `<button class="btn-rsvp" disabled>Sudah Lewat</button>`
+          : `<button class="btn-rsvp ${joined ? 'joined' : ''}" onclick="toggleRsvp('${e.id}', this)">${joined ? '✓ Ikut Kopdar' : 'Ikut Kopdar'}</button>`
+        }
+      </div>
+    `;
+  }).join('');
+}
+
+async function toggleRsvp(eventId, btn) {
+  btn.disabled = true;
+  const alreadyJoined = myRsvpIds.has(eventId);
+
+  if (alreadyJoined) {
+    const { error } = await sb.from('event_members').delete().eq('event_id', eventId).eq('member_id', currentUser.id);
+    if (error) { showToast('Gagal membatalkan RSVP'); btn.disabled = false; return; }
+    myRsvpIds.delete(eventId);
+    showToast('Kamu batal ikut kopdar ini');
+  } else {
+    const { error } = await sb.from('event_members').insert({ event_id: eventId, member_id: currentUser.id });
+    if (error) { showToast('Gagal mendaftar kopdar'); btn.disabled = false; return; }
+    myRsvpIds.add(eventId);
+    showToast('✓ Kamu terdaftar ikut kopdar ini');
+  }
+  btn.disabled = false;
+  btn.classList.toggle('joined', myRsvpIds.has(eventId));
+  btn.textContent = myRsvpIds.has(eventId) ? '✓ Ikut Kopdar' : 'Ikut Kopdar';
+}
+
+function escapeHtmlP(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent=msg; t.style.display='block';
   setTimeout(()=>t.style.display='none', 2800);
 }
-
 // ============ START ============
 init();
 </script>
