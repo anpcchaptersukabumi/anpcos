@@ -361,12 +361,17 @@ function switchSection(name) {
   activeSection = name;
   document.getElementById('btnSectionMembers').classList.toggle('active', name === 'members');
   document.getElementById('btnSectionProfiles').classList.toggle('active', name === 'profiles');
+  document.getElementById('btnSectionEvents').classList.toggle('active', name === 'events');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
+  document.getElementById('sectionEvents').classList.toggle('hidden', name !== 'events');
   document.getElementById('searchInput').value = '';
   if (name === 'profiles') {
     if (allProfiles.length === 0) loadProfiles();
     else { renderProfileTabs(); renderProfileList(); }
+  } else if (name === 'events') {
+    if (allEvents.length === 0) loadEvents();
+    else { renderEventTabs(); renderEventsList(); }
   } else {
     renderList();
   }
