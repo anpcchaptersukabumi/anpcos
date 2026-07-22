@@ -739,14 +739,16 @@ function renderDash() {
   const p = currentProfile;
   if (!p) return;
   const init = (p.nama||'?')[0].toUpperCase();
-  document.getElementById('topAvatar').textContent = init;
+  const avatarHtml = p.foto_url ? `<img src="${p.foto_url}" alt=""/>` : init;
+  document.getElementById('topAvatar').innerHTML = avatarHtml;
 
   // KTA
   document.getElementById('ktaNama').textContent = p.nama || '—';
   document.getElementById('ktaNo').textContent = 'NO. ' + (p.no_anggota || 'PENDING');
   document.getElementById('ktaPcx').textContent = p.tahun_pcx || '—';
   document.getElementById('ktaDomisili').textContent = '📍 ' + (p.domisili || '—');
-  document.getElementById('ktaPhoto').textContent = init;
+  document.getElementById('ktaPhoto').innerHTML = avatarHtml;
+  document.getElementById('profilAvatar').innerHTML = avatarHtml;
   const tahun = new Date(p.created_at).getFullYear();
   document.getElementById('ktaTahun').textContent = 'Bergabung ' + tahun;
 
