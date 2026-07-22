@@ -334,6 +334,7 @@ function renderList() {
           <div class="nama">${escapeHtml(m.nama)}</div>
           <div class="member-meta">
             <span>📱 ${escapeHtml(m.whatsapp)}</span>
+            ${m.email ? `<span>✉️ ${escapeHtml(m.email)}</span>` : ''}
             ${m.domisili ? `<span>📍 ${escapeHtml(m.domisili)}</span>` : ''}
             <span>📅 ${date}</span>
           </div>
