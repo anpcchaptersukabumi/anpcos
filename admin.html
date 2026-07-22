@@ -63,6 +63,14 @@
   .modal-box .action-buttons { display:flex; gap:10px; margin-top:16px; }
   .modal-box .action-buttons button { flex:1; }
   .btn-solid { background:linear-gradient(135deg,var(--red-bright),var(--red)); color:#fff; border:none; padding:11px; font-weight:700; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
+  .modal-box.wide { max-width:560px; }
+  .modal-box label { display:block; font-size:0.78rem; color:var(--grey); margin:10px 0 4px; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
+  .modal-box textarea { width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; outline:none; resize:vertical; min-height:70px; }
+  .modal-box textarea:focus { border-color:var(--gold); }
+  .checklist { max-height:50vh; overflow-y:auto; margin:14px 0; border:1px solid rgba(212,175,55,0.1); }
+  .checklist-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; }
+  .checklist-item:last-child { border-bottom:none; }
+  .checklist-item input[type=checkbox] { width:18px; height:18px; accent-color:var(--gold); cursor:pointer; }
 </style>
 </head>
 <body>
