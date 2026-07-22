@@ -154,8 +154,21 @@ footer { background: var(--black-2); border-top: 1px solid rgba(212,175,55,0.12)
   .form-row { grid-template-columns:1fr; }
   .reg-panel { padding: 2rem 1.4rem; }
   .footer-grid { grid-template-columns:1fr; gap:2rem; }
-  .gallery-grid { grid-template-columns: repeat(2,1fr); }
+ .gallery-grid { grid-template-columns: repeat(2,1fr); }
 }
+
+/* ROUNDED CORNERS — kesan lebih premium */
+.hero-emblem-img { border-radius: 24px; }
+.btn-primary, .btn-outline { border-radius: 10px; }
+.wa-float a { border-radius: 999px; }
+.btn-nav { border-radius: 10px; }
+
+/* INTERAKTIF & PARALLAX */
+#home { perspective: 1000px; }
+.hero-emblem-wrap { transition: transform 0.15s ease-out; transform-style: preserve-3d; }
+.hero-bg-layer { will-change: transform; }
+.reveal { opacity:0; transform: translateY(40px); transition: opacity 0.9s ease, transform 0.9s ease; }
+.reveal.in-view { opacity:1; transform: translateY(0); }
 
 </style>
 </head>
