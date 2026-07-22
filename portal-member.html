@@ -878,12 +878,12 @@ function openEventDetail(eventId) {
   if (!e) return;
   const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
 
-  document.getElementById('detailBadge').textContent = e.is_resmi !== false ? '● AGENDA RESMI CHAPTER' : '● AGENDA KOMUNITAS';
+  document.getElementById('detailBadge').textContent = e.is_resmi !== false ? 'AGENDA RESMI CHAPTER' : 'AGENDA KOMUNITAS';
   document.getElementById('detailNama').textContent = e.nama;
-  document.getElementById('detailTanggal').textContent = '📅 ' + tanggalFmt;
-  const jarakEl = document.getElementById('detailJarak');
-  if (e.jarak) { jarakEl.textContent = '🏍️ ' + e.jarak; jarakEl.classList.remove('hidden'); }
-  else { jarakEl.classList.add('hidden'); }
+  document.getElementById('detailTanggal').textContent = tanggalFmt;
+  const jarakBox = document.getElementById('detailJarakBox');
+  if (e.jarak) { document.getElementById('detailJarak').textContent = e.jarak; jarakBox.classList.remove('hidden'); }
+  else { jarakBox.classList.add('hidden'); }
 
   document.getElementById('detailDeskripsi').textContent = e.deskripsi || 'Belum ada deskripsi.';
   const ruteLines = (e.rute_info || '').split('\n').filter(l => l.trim());
