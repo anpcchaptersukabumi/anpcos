@@ -51,7 +51,18 @@
   .icon-btn.approve { border-color:#4ADE80; color:#4ADE80; background:rgba(74,222,128,0.1); }
   .icon-btn.reject { border-color:#F87171; color:#F87171; background:rgba(248,113,113,0.1); }
   .icon-btn.delete { border-color:rgba(255,255,255,0.15); color:var(--grey); background:rgba(255,255,255,0.04); }
-  .toast { position:fixed; top:20px; right:20px; z-index:200; background:var(--black-4); border:1px solid var(--gold); color:var(--gold); padding:12px 20px; font-weight:600; font-size:0.88rem; box-shadow:0 8px 30px rgba(0,0,0,0.5); display:none; }
+ .toast { position:fixed; top:20px; right:20px; z-index:200; background:var(--black-4); border:1px solid var(--gold); color:var(--gold); padding:12px 20px; font-weight:600; font-size:0.88rem; box-shadow:0 8px 30px rgba(0,0,0,0.5); display:none; }
+  .section-switch { display:flex; gap:10px; margin-bottom:1.6rem; flex-wrap:wrap; }
+  .section-btn { background:var(--black-3); border:1px solid rgba(212,175,55,0.18); color:var(--grey-light); padding:11px 20px; font-weight:700; font-size:0.82rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
+  .section-btn.active { background:linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06)); border-color:var(--gold); color:var(--gold); }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:300; display:flex; align-items:center; justify-content:center; padding:1.5rem; }
+  .modal-box { background:linear-gradient(160deg,var(--black-3),var(--black-2)); border:1px solid rgba(212,175,55,0.3); padding:2rem; width:100%; max-width:380px; }
+  .modal-box h3 { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1rem; margin-bottom:8px; }
+  .modal-box input { width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; outline:none; }
+  .modal-box input:focus { border-color:var(--gold); }
+  .modal-box .action-buttons { display:flex; gap:10px; margin-top:16px; }
+  .modal-box .action-buttons button { flex:1; }
+  .btn-solid { background:linear-gradient(135deg,var(--red-bright),var(--red)); color:#fff; border:none; padding:11px; font-weight:700; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
 </style>
 </head>
 <body>
