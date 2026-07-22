@@ -185,11 +185,6 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   letter-spacing:2px;color:var(--gold);}
 .kta-info .pcx{font-size:0.75rem;color:var(--grey);margin-top:4px;}
 .kta-info .domisili{font-size:0.72rem;color:var(--grey);}
-.kta-sosmed{display:flex;gap:8px;margin-top:8px;}
-.kta-sosmed a{width:26px;height:26px;border-radius:50%;background:rgba(212,175,55,0.1);
-  border:1px solid rgba(212,175,55,0.3);display:flex;align-items:center;justify-content:center;
-  color:var(--gold);text-decoration:none;font-size:0.8rem;transition:all .2s;}
-.kta-sosmed a:hover{background:rgba(212,175,55,0.25);transform:translateY(-1px);}
 .kta-divider{margin:0 1.5rem;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.25),transparent);}
 .kta-footer{padding:.8rem 1.5rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:relative;}
 .kta-qr{width:72px;height:72px;flex-shrink:0;}
@@ -363,6 +358,77 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .btn-photo:hover{background:rgba(212,175,55,0.1);}
 .btn-photo:disabled{opacity:.6;cursor:not-allowed;}
 
+/* MILEAGE CARD (Seberapa ANPC) */
+.mileage-card{background:var(--blk3);border:1px solid rgba(212,175,55,0.15);border-radius:16px;padding:1.8rem;margin-bottom:2rem;}
+.mileage-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(212,175,55,0.08);
+  border:1px solid rgba(212,175,55,0.3);color:var(--gold);font-family:'Rajdhani',sans-serif;
+  font-weight:700;font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;
+  padding:5px 12px;border-radius:999px;margin-bottom:1rem;}
+.mileage-title{font-family:'Cinzel',serif;font-weight:700;font-size:1.6rem;color:var(--white);margin-bottom:.5rem;}
+.mileage-desc{color:var(--grey);font-size:0.85rem;margin-bottom:1.3rem;line-height:1.5;max-width:560px;}
+.mileage-id-box{display:inline-block;background:var(--blk4);border:1px solid rgba(212,175,55,0.12);
+  border-radius:10px;padding:8px 16px;margin-bottom:1.4rem;}
+.mileage-id-label{font-size:0.6rem;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;}
+.mileage-id-value{font-family:'Cinzel',serif;font-weight:700;font-size:0.9rem;color:var(--gold);}
+.mileage-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;}
+.mstat-box{background:var(--blk4);border:1px solid rgba(212,175,55,0.1);border-radius:10px;padding:1rem;}
+.mstat-icon{width:32px;height:32px;border-radius:8px;background:rgba(212,175,55,0.12);
+  display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.6rem;}
+.mstat-label{font-size:0.6rem;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;}
+.mstat-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.25rem;color:var(--white);line-height:1.2;}
+.mstat-unit{font-size:0.62rem;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+
+.milestone-section-head{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1rem;margin-top:2.2rem;gap:1rem;flex-wrap:wrap;}
+.milestone-section-title{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;
+  color:var(--white);display:flex;align-items:center;gap:8px;}
+.milestone-section-sub{font-size:0.78rem;color:var(--grey);margin-top:2px;}
+.milestone-count-pill{background:var(--blk4);border:1px solid rgba(212,175,55,0.15);color:var(--gold);
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.72rem;padding:5px 14px;
+  border-radius:999px;flex-shrink:0;}
+
+.history-table-wrap{overflow-x:auto;}
+.history-table{width:100%;border-collapse:collapse;min-width:480px;}
+.history-table th{text-align:left;font-size:0.65rem;color:var(--grey);letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:700;padding:0 .6rem .7rem;border-bottom:1px solid rgba(212,175,55,0.1);}
+.history-table td{padding:.9rem .6rem;border-bottom:1px solid rgba(212,175,55,0.06);
+  font-size:0.85rem;color:var(--grey-l);vertical-align:middle;}
+.history-event{display:flex;align-items:center;gap:10px;}
+.history-event-icon{width:34px;height:34px;border-radius:8px;background:rgba(212,175,55,0.1);
+  display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;}
+.history-event-name{font-weight:700;color:var(--white);font-size:0.85rem;}
+.history-jarak-badge{display:inline-block;background:var(--blk4);border:1px solid rgba(212,175,55,0.2);
+  color:var(--gold);font-weight:700;font-size:0.78rem;padding:5px 12px;border-radius:8px;white-space:nowrap;}
+
+/* TOP MILEAGE RANKING */
+.board-row{display:flex;align-items:center;gap:14px;background:var(--blk3);
+  border:1px solid rgba(212,175,55,0.1);border-radius:12px;padding:12px 16px;margin-bottom:.7rem;
+  transition:border-color .2s;}
+.board-row:hover{border-color:rgba(212,175,55,0.3);}
+.board-row.me{border-color:var(--gold);background:rgba(212,175,55,0.06);}
+.board-rank{width:32px;flex-shrink:0;text-align:center;font-family:'Cinzel',serif;font-weight:700;
+  font-size:1.1rem;color:var(--grey);}
+.board-rank.top1{color:#F4D87C;font-size:1.3rem;}
+.board-rank.top2{color:#D8D8D8;font-size:1.2rem;}
+.board-rank.top3{color:#D8955A;font-size:1.2rem;}
+.board-avatar{width:44px;height:44px;border-radius:50%;flex-shrink:0;overflow:hidden;
+  background:rgba(212,175,55,0.1);border:1.5px solid rgba(212,175,55,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:var(--gold);}
+.board-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.board-info{flex:1;min-width:0;}
+.board-name{font-weight:700;font-size:0.92rem;color:var(--grey-l);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;}
+.board-sub{font-size:0.72rem;color:var(--grey);margin-top:2px;}
+.board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
+  flex-shrink:0;text-align:right;}
+.board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
+  font-size:0.62rem;color:var(--grey);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+
+@media(max-width:768px){
+  .mileage-stats{grid-template-columns:repeat(2,1fr);}
+}
+
 /* BOTTOM NAV (mobile only) */
 .bottom-nav{
   display:none;position:fixed;left:0;right:0;bottom:0;z-index:95;
@@ -458,7 +524,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   </div>
 
   <div class="layout">
-   <aside class="sidebar">
+    <aside class="sidebar">
       <div class="sidebar-section">Member</div>
       <div class="nav-item active" data-page="ktaPage" onclick="showPage('ktaPage')">
         <span class="nav-icon">🪪</span> KTA Digital
@@ -471,7 +537,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         <span class="nav-icon">📅</span> Event & Kopdar
       </div>
       <div class="nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
-        <span class="nav-icon">🏆</span> Leaderboard
+        <span class="nav-icon">🏍️</span> Seberapa ANPC
       </div>
       <div class="sidebar-section">Info</div>
       <div class="nav-item" onclick="window.open('index.html','_blank')">
@@ -490,9 +556,11 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         <span class="bottom-nav-icon">📅</span><span>Event</span>
       </div>
       <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
-        <span class="bottom-nav-icon">🏆</span><span>Ranking</span>
+        <span class="bottom-nav-icon">🏍️</span><span>Mileage</span>
       </div>
     </nav>
+
+
     <main class="main-content">
 
       <!-- KTA PAGE -->
@@ -520,8 +588,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
                 <div class="nama" id="ktaNama">—</div>
                 <div class="no-anggota" id="ktaNo">NO. —</div>
                 <div class="pcx" id="ktaPcx">Honda PCX —</div>
-<div class="domisili" id="ktaDomisili">📍 —</div>
-                <div class="kta-sosmed" id="ktaSosmed"></div>
+                <div class="domisili" id="ktaDomisili">📍 —</div>
               </div>
             </div>
             <div class="kta-divider"></div>
@@ -553,7 +620,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
                 <div class="kta-action-desc">Share ke WhatsApp atau sosmed</div>
               </div>
             </button>
-           <button class="kta-action-btn" onclick="showPage('profilPage')">
+            <button class="kta-action-btn" onclick="showPage('profilPage')">
               <span class="kta-action-icon">✏️</span>
               <div>
                 <div class="kta-action-title">Update Data</div>
@@ -571,7 +638,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <h1 class="page-title">PROFIL <span class="gold">MEMBER</span></h1>
           <div class="page-divider"></div>
         </div>
-      <div class="profil-card">
+       <div class="profil-card">
           <div style="display:flex; align-items:center; gap:1.2rem; margin-bottom:1.6rem;">
             <div class="profil-avatar" id="profilAvatar">?</div>
             <div>
@@ -582,49 +649,32 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           </div>
           <div class="f-group">
             <label class="f-label">Nama Lengkap</label>
-            <input type="text" class="f-input profil-editable" id="pNama" placeholder="Nama lengkap" disabled/>
+            <input type="text" class="f-input" id="pNama" placeholder="Nama lengkap"/>
           </div>
           <div class="f-row">
             <div class="f-group">
               <label class="f-label">WhatsApp</label>
-              <input type="tel" class="f-input profil-editable" id="pWa" placeholder="08xxxxxxxxxx" disabled/>
+              <input type="tel" class="f-input" id="pWa" placeholder="08xxxxxxxxxx"/>
             </div>
             <div class="f-group">
               <label class="f-label">Domisili</label>
-              <input type="text" class="f-input profil-editable" id="pDomisili" placeholder="Kecamatan" disabled/>
+              <input type="text" class="f-input" id="pDomisili" placeholder="Kecamatan"/>
             </div>
           </div>
           <div class="f-group">
             <label class="f-label">Tahun Honda PCX</label>
-            <select class="f-input profil-editable" id="pPcx" disabled>
+            <select class="f-input" id="pPcx">
               <option value="">Pilih tahun</option>
               <option>PCX 2018</option><option>PCX 2019</option><option>PCX 2020</option>
               <option>PCX 2021 (All New)</option><option>PCX 2022</option><option>PCX 2023</option>
               <option>PCX 2024</option><option>PCX 2025</option><option>PCX 2026</option>
             </select>
           </div>
-          <div class="f-row">
-            <div class="f-group">
-              <label class="f-label">Facebook</label>
-              <input type="text" class="f-input profil-editable" id="pFacebook" placeholder="Nama profil / username" disabled/>
-            </div>
-            <div class="f-group">
-              <label class="f-label">Instagram</label>
-              <input type="text" class="f-input profil-editable" id="pInstagram" placeholder="@username" disabled/>
-            </div>
-          </div>
-          <div class="f-group">
-            <label class="f-label">TikTok</label>
-            <input type="text" class="f-input profil-editable" id="pTiktok" placeholder="@username" disabled/>
-          </div>
           <div class="f-group">
             <label class="f-label">Email (tidak bisa diubah)</label>
             <input type="email" class="f-input" id="pEmail" disabled style="opacity:.5;cursor:not-allowed;"/>
           </div>
-          <div style="display:flex; gap:10px;">
-            <button class="btn-photo" id="editProfileBtn" onclick="enableProfilEdit()">Edit Profile</button>
-            <button class="btn-save hidden" id="saveProfilBtn" onclick="saveProfil()">Simpan Perubahan</button>
-          </div>
+          <button class="btn-save" onclick="saveProfil()">Simpan Perubahan</button>
           <div class="save-ok" id="saveOk">✓ Profil berhasil disimpan!</div>
         </div>
       </div>
@@ -643,15 +693,12 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <!-- LEADERBOARD PAGE -->
       <div class="page" id="leaderPage">
         <div class="page-header">
-          <div class="page-eyebrow">Keaktifan Member</div>
-          <h1 class="page-title">LEADER<span class="gold">BOARD</span></h1>
+          <div class="page-eyebrow">Catatan Perjalanan</div>
+          <h1 class="page-title">SEBERAPA <span class="gold">ANPC</span></h1>
           <div class="page-divider"></div>
         </div>
-        <div style="color:var(--grey);font-size:.9rem;padding:3rem 0;text-align:center;">
-          <div style="font-size:2.5rem;margin-bottom:1rem;">🏆</div>
-          <div style="font-weight:600;color:var(--grey-l);margin-bottom:.5rem;">Sistem Poin & Leaderboard</div>
-          <div>Akan aktif setelah fitur absensi kopdar diimplementasikan.</div>
-        </div>
+
+        <div id="leaderboardContainer" style="color:var(--grey);font-size:.9rem;padding:3rem 0;text-align:center;">Memuat data...</div>
       </div>
 
     </main>
@@ -739,10 +786,15 @@ async function doRegister() {
 
   btn.disabled=true; btn.textContent='Memeriksa...';
 
-  const { data: rows } = await sb.rpc('check_member_registration', { check_email: email });
-  const latest = rows && rows.length > 0 ? rows[0] : null;
+  // Cari data approved dulu (paling prioritas, hindari masalah duplikat & besar-kecil huruf email)
+  const { data: approvedRows } = await sb.from('members').select('status,nama,whatsapp').ilike('email', email).eq('status','approved').limit(1);
+  const approved = approvedRows && approvedRows.length > 0 ? approvedRows[0] : null;
 
-  if (!latest || latest.status !== 'approved') {
+  if (!approved) {
+    // Nggak ada yang approved, cek data terbaru dengan email ini buat kasih pesan yang tepat
+    const { data: anyRows } = await sb.from('members').select('status').ilike('email', email).order('created_at',{ascending:false}).limit(1);
+    const latest = anyRows && anyRows.length > 0 ? anyRows[0] : null;
+
     if (!latest) {
       err.textContent='Email belum terdaftar. Isi form registrasi di website ANPC terlebih dahulu.';
     } else if (latest.status === 'rejected') {
@@ -752,7 +804,7 @@ async function doRegister() {
     }
     err.style.display='block'; btn.disabled=false; btn.textContent='Buat Akun'; return;
   }
-  const m = latest;
+  const m = approved;
 
   btn.textContent='Membuat akun...';
   const { error } = await sb.auth.signUp({
@@ -778,30 +830,8 @@ async function loadDash() {
   document.getElementById('authScreen').classList.remove('active');
   document.getElementById('dashScreen').classList.add('active');
   const { data: prof } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-currentProfile = prof;
+  currentProfile = prof;
   renderDash();
-}
-
-function normalizeSosmedUrl(platform, value) {
-  let v = value.trim();
-  if (v.startsWith('http://') || v.startsWith('https://')) return v;
-  v = v.replace(/^@/, '');
-  if (platform === 'facebook') return `https://facebook.com/${v}`;
-  if (platform === 'instagram') return `https://instagram.com/${v}`;
-  if (platform === 'tiktok') return `https://tiktok.com/@${v}`;
-  return v;
-}
-
-function renderSosmedIcons(p) {
-  const icons = [];
-  const icoFacebook = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.5-3h-3V8.5c0-.9.3-1.5 1.6-1.5H16.5V4.2C16.2 4.1 15.2 4 14 4c-2.4 0-4 1.5-4 4.2V10.5H7.5v3H10V21h3.5z"/></svg>`;
-  const icoInstagram = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="0.8" fill="currentColor" stroke="none"/></svg>`;
-  const icoTiktok = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M16.5 3c.3 1.9 1.6 3.4 3.5 3.8v2.6c-1.3 0-2.5-.4-3.5-1.1v6.4c0 3-2.4 5.3-5.3 5.3S5.9 17.7 5.9 14.7c0-2.8 2.1-5.1 4.9-5.3v2.7c-1.3.2-2.3 1.3-2.3 2.6 0 1.5 1.2 2.7 2.7 2.7s2.7-1.2 2.7-2.7V3h2.6z"/></svg>`;
-
-  if (p.sosmed_facebook) icons.push(`<a href="${normalizeSosmedUrl('facebook', p.sosmed_facebook)}" target="_blank" rel="noopener" title="Facebook">${icoFacebook}</a>`);
-  if (p.sosmed_instagram) icons.push(`<a href="${normalizeSosmedUrl('instagram', p.sosmed_instagram)}" target="_blank" rel="noopener" title="Instagram">${icoInstagram}</a>`);
-  if (p.sosmed_tiktok) icons.push(`<a href="${normalizeSosmedUrl('tiktok', p.sosmed_tiktok)}" target="_blank" rel="noopener" title="TikTok">${icoTiktok}</a>`);
-  return icons.join('');
 }
 
 function renderDash() {
@@ -815,8 +845,7 @@ function renderDash() {
   document.getElementById('ktaNama').textContent = p.nama || '—';
   document.getElementById('ktaNo').textContent = 'NO. ' + (p.no_anggota || 'PENDING');
   document.getElementById('ktaPcx').textContent = p.tahun_pcx || '—';
- document.getElementById('ktaDomisili').textContent = '📍 ' + (p.domisili || '—');
-  document.getElementById('ktaSosmed').innerHTML = renderSosmedIcons(p);
+  document.getElementById('ktaDomisili').textContent = '📍 ' + (p.domisili || '—');
   document.getElementById('ktaPhoto').innerHTML = avatarHtml;
   document.getElementById('profilAvatar').innerHTML = avatarHtml;
   const tahun = new Date(p.created_at).getFullYear();
@@ -847,16 +876,14 @@ function renderDash() {
     console.warn('QR code gagal dibuat:', err);
   }
 
-// Profil form
+  // Profil form
   document.getElementById('pNama').value = p.nama || '';
   document.getElementById('pWa').value = p.whatsapp || '';
   document.getElementById('pDomisili').value = p.domisili || '';
   document.getElementById('pPcx').value = p.tahun_pcx || '';
-  document.getElementById('pFacebook').value = p.sosmed_facebook || '';
-  document.getElementById('pInstagram').value = p.sosmed_instagram || '';
-  document.getElementById('pTiktok').value = p.sosmed_tiktok || '';
-  document.getElementById('pEmail').value = currentUser.email || '';
+document.getElementById('pEmail').value = currentUser.email || '';
 }
+
 async function uploadAvatar(evt) {
   const file = evt.target.files[0];
   if (!file) return;
@@ -897,18 +924,7 @@ function showPage(pageId) {
   document.getElementById(pageId).classList.add('active');
   document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
   if (pageId === 'eventPage') loadEvents();
-}
-
-function enableProfilEdit() {
-  document.querySelectorAll('.profil-editable').forEach(el => el.disabled = false);
-  document.getElementById('editProfileBtn').classList.add('hidden');
-  document.getElementById('saveProfilBtn').classList.remove('hidden');
-}
-
-function disableProfilEdit() {
-  document.querySelectorAll('.profil-editable').forEach(el => el.disabled = true);
-  document.getElementById('editProfileBtn').classList.remove('hidden');
-  document.getElementById('saveProfilBtn').classList.add('hidden');
+  if (pageId === 'leaderPage') loadLeaderboard();
 }
 
 async function saveProfil() {
@@ -917,16 +933,12 @@ async function saveProfil() {
     whatsapp: document.getElementById('pWa').value.trim(),
     domisili: document.getElementById('pDomisili').value.trim(),
     tahun_pcx: document.getElementById('pPcx').value,
-    sosmed_facebook: document.getElementById('pFacebook').value.trim(),
-    sosmed_instagram: document.getElementById('pInstagram').value.trim(),
-    sosmed_tiktok: document.getElementById('pTiktok').value.trim(),
     updated_at: new Date().toISOString()
   };
   const { error } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
   if (!error) {
     currentProfile = { ...currentProfile, ...updates };
     renderDash();
-    disableProfilEdit();
     document.getElementById('saveOk').style.display='block';
     setTimeout(() => document.getElementById('saveOk').style.display='none', 3000);
     showToast('✓ Profil berhasil disimpan');
@@ -1028,6 +1040,141 @@ function getCountdownLabel(tanggalStr, todayStr) {
   if (diffDays === 0) return { text: '● BERLANGSUNG HARI INI', past: false };
   if (diffDays > 0) return { text: `● ${diffDays} HARI LAGI`, past: false };
   return { text: 'SUDAH SELESAI', past: true };
+}
+
+let leaderboardData = [];
+let myHistoryData = [];
+
+async function loadLeaderboard() {
+  const container = document.getElementById('leaderboardContainer');
+  container.innerHTML = '<div style="color:var(--grey);text-align:center;padding:2rem 0;">Memuat data...</div>';
+
+  const [{ data: rankData, error: rankError }, { data: historyData, error: historyError }] = await Promise.all([
+    sb.rpc('get_leaderboard'),
+    sb.from('absensi')
+      .select('hadir_at, events(nama, tanggal, jarak)')
+      .eq('member_id', currentUser.id)
+      .order('tanggal', { foreignTable: 'events', ascending: false }),
+  ]);
+
+  if (rankError) {
+    container.innerHTML = '<div style="color:#F87171;text-align:center;padding:2rem 0;">Gagal memuat data.</div>';
+    return;
+  }
+
+  leaderboardData = rankData || [];
+  myHistoryData = historyData || [];
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const container = document.getElementById('leaderboardContainer');
+
+  const sorted = [...leaderboardData].sort((a, b) => b.total_km - a.total_km);
+  const myIndex = sorted.findIndex(m => currentUser && m.member_id === currentUser.id);
+  const myRank = myIndex >= 0 ? myIndex + 1 : '-';
+  const myData = leaderboardData.find(m => currentUser && m.member_id === currentUser.id) || { total_km: 0, total_kehadiran: 0 };
+  const lastTrip = myHistoryData[0];
+
+  const historyRows = myHistoryData.length === 0
+    ? `<tr><td colspan="3" style="text-align:center;color:var(--grey);padding:2rem 0;">Belum ada riwayat touring.</td></tr>`
+    : myHistoryData.map(h => {
+        const ev = h.events || {};
+        const tanggalFmt = ev.tanggal ? new Date(ev.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) : '-';
+        return `
+          <tr>
+            <td>${tanggalFmt}</td>
+            <td>
+              <div class="history-event">
+                <div class="history-event-icon">🏍️</div>
+                <div class="history-event-name">${escapeHtmlP(ev.nama || 'Agenda')}</div>
+              </div>
+            </td>
+            <td><span class="history-jarak-badge">${ev.jarak ? escapeHtmlP(ev.jarak) : '-'}</span></td>
+          </tr>`;
+      }).join('');
+
+  const rankingRows = sorted.length === 0
+    ? `<div style="color:var(--grey);text-align:center;padding:2rem 0;">Belum ada data ranking.</div>`
+    : sorted.map((m, i) => {
+        const rank = i + 1;
+        const rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+        const rankLabel = rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank;
+        const init = (m.nama || '?').charAt(0).toUpperCase();
+        const avatarHtml = m.foto_url ? `<img src="${m.foto_url}" alt=""/>` : init;
+        const isMe = currentUser && m.member_id === currentUser.id;
+
+        return `
+          <div class="board-row ${isMe ? 'me' : ''}">
+            <div class="board-rank ${rankClass}">${rankLabel}</div>
+            <div class="board-avatar">${avatarHtml}</div>
+            <div class="board-info">
+              <div class="board-name">${escapeHtmlP(m.nama || 'Member')}</div>
+              <div class="board-sub">${m.no_anggota ? '#' + escapeHtmlP(m.no_anggota) : 'NRA belum ada'}</div>
+            </div>
+            <div class="board-value">${Number(m.total_km || 0).toFixed(0)}<span>Km</span></div>
+          </div>`;
+      }).join('');
+
+  container.innerHTML = `
+    <div class="mileage-card">
+      <div class="mileage-badge">📍 Mileage Record</div>
+      <div class="mileage-title">Catatan Perjalanan</div>
+      <div class="mileage-desc">Rekap jarak tempuh resmi dari agenda touring yang sudah dikonfirmasi kehadirannya oleh pengurus ANPC Sukabumi.</div>
+      <div class="mileage-id-box">
+        <div class="mileage-id-label">Member ID</div>
+        <div class="mileage-id-value">${escapeHtmlP(currentProfile?.no_anggota || '-')}</div>
+      </div>
+      <div class="mileage-stats">
+        <div class="mstat-box">
+          <div class="mstat-icon">🏁</div>
+          <div class="mstat-label">Total Km</div>
+          <div class="mstat-value">${Number(myData.total_km || 0).toFixed(0)}</div>
+          <div class="mstat-unit">Kilometer</div>
+        </div>
+        <div class="mstat-box">
+          <div class="mstat-icon">📘</div>
+          <div class="mstat-label">Trip</div>
+          <div class="mstat-value">${myData.total_kehadiran || 0}</div>
+          <div class="mstat-unit">Agenda</div>
+        </div>
+        <div class="mstat-box">
+          <div class="mstat-icon">🏆</div>
+          <div class="mstat-label">Rank</div>
+          <div class="mstat-value">#${myRank}</div>
+          <div class="mstat-unit">Chapter</div>
+        </div>
+        <div class="mstat-box">
+          <div class="mstat-icon">🕐</div>
+          <div class="mstat-label">Terakhir</div>
+          <div class="mstat-value" style="font-size:0.9rem;">${lastTrip ? escapeHtmlP(lastTrip.events?.nama || '-') : '-'}</div>
+          <div class="mstat-unit">${lastTrip ? escapeHtmlP(lastTrip.events?.jarak || '') : ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="milestone-section-head">
+      <div>
+        <div class="milestone-section-title">🏁 Riwayat Touring Saya</div>
+        <div class="milestone-section-sub">Semua log jarak tempuh dari agenda resmi yang pernah diikuti.</div>
+      </div>
+      <div class="milestone-count-pill">${myHistoryData.length} LOG</div>
+    </div>
+    <div class="history-table-wrap">
+      <table class="history-table">
+        <thead><tr><th>Tanggal</th><th>Agenda Touring</th><th>Jarak</th></tr></thead>
+        <tbody>${historyRows}</tbody>
+      </table>
+    </div>
+
+    <div class="milestone-section-head">
+      <div>
+        <div class="milestone-section-title">🏍️ Top Mileage</div>
+        <div class="milestone-section-sub">Ranking jarak tempuh member chapter.</div>
+      </div>
+    </div>
+    ${rankingRows}
+  `;
 }
 
 function openEventDetail(eventId) {
