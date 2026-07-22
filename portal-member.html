@@ -876,11 +876,11 @@ async function uploadAvatar(evt) {
   showToast('✓ Foto profil berhasil diperbarui');
 }
 
-function showPage(pageId, navEl) {
+function showPage(pageId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
-  if (navEl) navEl.classList.add('active');
+  document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
   if (pageId === 'eventPage') loadEvents();
 }
 
