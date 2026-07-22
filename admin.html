@@ -301,6 +301,123 @@ async function deleteMember(id, nama) {
   showToast(`Data ${nama} dihapus`);
 }
 
+function onSearchInput() {
+  if (activeSection === 'members') renderList();
+  else renderProfileList();
+}
+
+function switchSection(name) {
+  activeSection = name;
+  document.getElementById('btnSectionMembers').classList.toggle('active', name === 'members');
+  document.getElementById('btnSectionProfiles').classList.toggle('active', name === 'profiles');
+  document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
+  document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
+  document.getElementById('searchInput').value = '';
+  if (name === 'profiles') {
+    if (allProfiles.length === 0) loadProfiles();
+    else { renderProfileTabs(); renderProfileList(); }
+  } else {
+    renderList();
+  }
+}
+
+async function loadProfiles() {
+  document.getElementById('profileListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('profiles').select('*').order('no_anggota', { ascending: true });
+  if (error) {
+    document.getElementById('profileListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allProfiles = data || [];
+  renderProfileTabs();
+  renderProfileList();
+}
+
+function renderProfileTabs() {
+  const counts = {
+    aktif: allProfiles.filter(p => p.status === 'aktif').length,
+    locked: allProfiles.filter(p => p.status === 'locked').length,
+    nonaktif: allProfiles.filter(p => p.status === 'nonaktif').length,
+    all: allProfiles.length,
+  };
+  const tabDefs = [
+    { key: 'aktif', label: 'Aktif' },
+    { key: 'locked', label: 'Terkunci' },
+    { key: 'nonaktif', label: 'Nonaktif' },
+    { key: 'all', label: 'Semua' },
+  ];
+  document.getElementById('profileTabs').innerHTML = tabDefs.map(t => `
+    <button class="tab-btn ${activeProfileTab === t.key ? 'active' : ''}" onclick="setProfileTab('${t.key}')">
+      ${t.label} <span class="count">${counts[t.key]}</span>
+    </button>
+  `).join('') + `<button class="btn-outline" style="margin-left:auto;" onclick="loadProfiles()">⟳ Muat Ulang</button>`;
+}
+
+function setProfileTab(key) {
+  activeProfileTab = key;
+  renderProfileTabs();
+  renderProfileList();
+}
+
+function renderProfileList() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let filtered = activeProfileTab === 'all' ? allProfiles : allProfiles.filter(p => p.status === activeProfileTab);
+  if (search) {
+    filtered = filtered.filter(p => (p.nama + (p.whatsapp||'') + (p.domisili||'') + (p.no_anggota||'')).toLowerCase().includes(search));
+  }
+  const container = document.getElementById('profileListContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Tidak ada data anggota di kategori ini.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(p => {
+    const badgeClass = p.status === 'aktif' ? 'badge-approved' : p.status === 'nonaktif' ? 'badge-rejected' : 'badge-pending';
+    const badgeLabel = p.status === 'aktif' ? 'Aktif' : p.status === 'nonaktif' ? 'Nonaktif' : 'Terkunci';
+    return `
+      <div class="member-card">
+        <div style="min-width:200px;flex:1;">
+          <div class="nama">${escapeHtml(p.nama || '(Belum lengkap)')}</div>
+          <div class="member-meta">
+            <span>🎖️ ${escapeHtml(p.no_anggota || '-')}</span>
+            ${p.whatsapp ? `<span>📱 ${escapeHtml(p.whatsapp)}</span>` : ''}
+            ${p.domisili ? `<span>📍 ${escapeHtml(p.domisili)}</span>` : ''}
+          </div>
+        </div>
+        <div class="action-row">
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+          <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openEditNoModal('${p.id}')" title="Edit No. Anggota">✎</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openEditNoModal(id) {
+  const p = allProfiles.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('editNoModal').dataset.profileId = id;
+  document.getElementById('editNoName').textContent = p.nama || '(Belum lengkap)';
+  document.getElementById('editNoInput').value = p.no_anggota || '';
+  document.getElementById('editNoModal').classList.remove('hidden');
+}
+
+function closeEditNoModal() {
+  document.getElementById('editNoModal').classList.add('hidden');
+}
+
+async function saveNoAnggota() {
+  const id = document.getElementById('editNoModal').dataset.profileId;
+  const newNo = document.getElementById('editNoInput').value.trim();
+  if (!newNo) { showToast('No. anggota tidak boleh kosong'); return; }
+  const { error } = await supabaseClient.from('profiles').update({ no_anggota: newNo }).eq('id', id);
+  if (error) { showToast('Gagal menyimpan: ' + error.message); return; }
+  const p = allProfiles.find(x => x.id === id);
+  if (p) p.no_anggota = newNo;
+  closeEditNoModal();
+  renderProfileList();
+  showToast('No. anggota berhasil diperbarui');
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str || '';
