@@ -413,6 +413,33 @@ document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click
   if (t) { e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
 }));
 
+// Animasi muncul per-section pas discroll
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in-view');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// Lencana hero ikut miring ngikutin gerakan mouse (desktop aja)
+const emblemWrap = document.querySelector('.hero-emblem-wrap');
+if (emblemWrap && window.innerWidth > 980) {
+  document.getElementById('home').addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 20;
+    const y = (e.clientY / window.innerHeight - 0.5) * 20;
+    emblemWrap.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+  });
+}
+
+// Parallax scroll buat background hero
+const heroBg = document.querySelector('.hero-bg-layer');
+window.addEventListener('scroll', () => {
+  if (heroBg) heroBg.style.transform = `translateY(${window.scrollY * 0.3}px)`;
+});
+
 async function handleRegister() {
   const nama = document.getElementById('reg-nama').value.trim();
   const wa = document.getElementById('reg-wa').value.trim();
