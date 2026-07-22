@@ -536,7 +536,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <h1 class="page-title">PROFIL <span class="gold">MEMBER</span></h1>
           <div class="page-divider"></div>
         </div>
-       <div class="profil-card">
+      <div class="profil-card">
           <div style="display:flex; align-items:center; gap:1.2rem; margin-bottom:1.6rem;">
             <div class="profil-avatar" id="profilAvatar">?</div>
             <div>
@@ -547,32 +547,49 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           </div>
           <div class="f-group">
             <label class="f-label">Nama Lengkap</label>
-            <input type="text" class="f-input" id="pNama" placeholder="Nama lengkap"/>
+            <input type="text" class="f-input profil-editable" id="pNama" placeholder="Nama lengkap" disabled/>
           </div>
           <div class="f-row">
             <div class="f-group">
               <label class="f-label">WhatsApp</label>
-              <input type="tel" class="f-input" id="pWa" placeholder="08xxxxxxxxxx"/>
+              <input type="tel" class="f-input profil-editable" id="pWa" placeholder="08xxxxxxxxxx" disabled/>
             </div>
             <div class="f-group">
               <label class="f-label">Domisili</label>
-              <input type="text" class="f-input" id="pDomisili" placeholder="Kecamatan"/>
+              <input type="text" class="f-input profil-editable" id="pDomisili" placeholder="Kecamatan" disabled/>
             </div>
           </div>
           <div class="f-group">
             <label class="f-label">Tahun Honda PCX</label>
-            <select class="f-input" id="pPcx">
+            <select class="f-input profil-editable" id="pPcx" disabled>
               <option value="">Pilih tahun</option>
               <option>PCX 2018</option><option>PCX 2019</option><option>PCX 2020</option>
               <option>PCX 2021 (All New)</option><option>PCX 2022</option><option>PCX 2023</option>
               <option>PCX 2024</option><option>PCX 2025</option><option>PCX 2026</option>
             </select>
           </div>
+          <div class="f-row">
+            <div class="f-group">
+              <label class="f-label">Facebook</label>
+              <input type="text" class="f-input profil-editable" id="pFacebook" placeholder="Nama profil / username" disabled/>
+            </div>
+            <div class="f-group">
+              <label class="f-label">Instagram</label>
+              <input type="text" class="f-input profil-editable" id="pInstagram" placeholder="@username" disabled/>
+            </div>
+          </div>
+          <div class="f-group">
+            <label class="f-label">TikTok</label>
+            <input type="text" class="f-input profil-editable" id="pTiktok" placeholder="@username" disabled/>
+          </div>
           <div class="f-group">
             <label class="f-label">Email (tidak bisa diubah)</label>
             <input type="email" class="f-input" id="pEmail" disabled style="opacity:.5;cursor:not-allowed;"/>
           </div>
-          <button class="btn-save" onclick="saveProfil()">Simpan Perubahan</button>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-photo" id="editProfileBtn" onclick="enableProfilEdit()">Edit Profile</button>
+            <button class="btn-save hidden" id="saveProfilBtn" onclick="saveProfil()">Simpan Perubahan</button>
+          </div>
           <div class="save-ok" id="saveOk">✓ Profil berhasil disimpan!</div>
         </div>
       </div>
