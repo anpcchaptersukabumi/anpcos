@@ -317,7 +317,7 @@ function renderList() {
   const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
   let filtered = activeTab === 'all' ? allMembers : allMembers.filter(m => m.status === activeTab);
   if (search) {
-    filtered = filtered.filter(m => (m.nama + m.whatsapp + (m.domisili||'')).toLowerCase().includes(search));
+    filtered = filtered.filter(m => (m.nama + m.whatsapp + (m.domisili||'') + (m.email||'')).toLowerCase().includes(search));
   }
   const container = document.getElementById('listContainer');
   if (filtered.length === 0) {
