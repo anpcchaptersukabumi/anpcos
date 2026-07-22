@@ -60,8 +60,9 @@
   <div class="login-box">
     <h1>🛡️ Admin Dashboard</h1>
     <p>ANPC Chapter Sukabumi</p>
-    <input type="password" id="adminPass" placeholder="Masukkan password admin" onkeydown="if(event.key==='Enter') checkLogin()"/>
-    <button onclick="checkLogin()">Masuk</button>
+    <input type="email" id="adminEmail" placeholder="Email admin" onkeydown="if(event.key==='Enter') document.getElementById('adminPass').focus()"/>
+    <input type="password" id="adminPass" placeholder="Password admin" onkeydown="if(event.key==='Enter') checkLogin()"/>
+    <button onclick="checkLogin()" id="loginBtn">Masuk</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
