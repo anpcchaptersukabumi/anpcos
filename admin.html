@@ -556,9 +556,28 @@ function renderEventsList() {
   }).join('');
 }
 
+function previewEventFoto(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('eventFotoPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+}
+
+async function uploadEventImage(file) {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const { error } = await supabaseClient.storage.from('event-images').upload(fileName, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from('event-images').getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
 function openEventModal(id) {
   const modal = document.getElementById('eventModal');
   modal.dataset.eventId = id || '';
+  document.getElementById('eventFoto').value = '';
+  const preview = document.getElementById('eventFotoPreview');
   if (id) {
     const e = allEvents.find(x => x.id === id);
     document.getElementById('eventModalTitle').textContent = 'Edit Event';
@@ -566,12 +585,23 @@ function openEventModal(id) {
     document.getElementById('eventDeskripsi').value = e.deskripsi || '';
     document.getElementById('eventTanggal').value = e.tanggal || '';
     document.getElementById('eventLokasi').value = e.lokasi || '';
+    document.getElementById('eventJarak').value = e.jarak || '';
+    document.getElementById('eventResmi').checked = e.is_resmi !== false;
+    document.getElementById('eventRute').value = e.rute_info || '';
+    document.getElementById('eventItinerary').value = e.itinerary || '';
+    if (e.gambar_url) { preview.src = e.gambar_url; preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
   } else {
     document.getElementById('eventModalTitle').textContent = 'Tambah Event';
     document.getElementById('eventNama').value = '';
     document.getElementById('eventDeskripsi').value = '';
     document.getElementById('eventTanggal').value = '';
     document.getElementById('eventLokasi').value = '';
+    document.getElementById('eventJarak').value = '';
+    document.getElementById('eventResmi').checked = true;
+    document.getElementById('eventRute').value = '';
+    document.getElementById('eventItinerary').value = '';
+    preview.classList.add('hidden');
   }
   modal.classList.remove('hidden');
 }
@@ -586,20 +616,35 @@ async function saveEvent() {
   const deskripsi = document.getElementById('eventDeskripsi').value.trim();
   const tanggal = document.getElementById('eventTanggal').value;
   const lokasi = document.getElementById('eventLokasi').value.trim();
+  const jarak = document.getElementById('eventJarak').value.trim();
+  const isResmi = document.getElementById('eventResmi').checked;
+  const rute = document.getElementById('eventRute').value.trim();
+  const itinerary = document.getElementById('eventItinerary').value.trim();
+  const fotoFile = document.getElementById('eventFoto').files[0];
 
   if (!nama || !tanggal) { showToast('Nama dan tanggal wajib diisi'); return; }
 
-  const payload = { nama, deskripsi, tanggal, lokasi };
-  let error;
-  if (id) {
-    ({ error } = await supabaseClient.from('events').update(payload).eq('id', id));
-  } else {
-    ({ error } = await supabaseClient.from('events').insert(payload));
+  const btn = document.getElementById('saveEventBtn');
+  btn.disabled = true;
+  btn.textContent = fotoFile ? 'Mengunggah foto...' : 'Menyimpan...';
+
+  const payload = { nama, deskripsi, tanggal, lokasi, jarak, is_resmi: isResmi, rute_info: rute, itinerary };
+
+  try {
+    if (fotoFile) payload.gambar_url = await uploadEventImage(fotoFile);
+    let error;
+    if (id) ({ error } = await supabaseClient.from('events').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('events').insert(payload));
+    if (error) throw error;
+    closeEventModal();
+    showToast(id ? 'Event berhasil diperbarui' : 'Event berhasil ditambahkan');
+    loadEvents();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
   }
-  if (error) { showToast('Gagal menyimpan: ' + error.message); return; }
-  closeEventModal();
-  showToast(id ? 'Event berhasil diperbarui' : 'Event berhasil ditambahkan');
-  loadEvents();
 }
 
 async function deleteEvent(id, nama) {
