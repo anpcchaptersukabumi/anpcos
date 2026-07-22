@@ -766,12 +766,16 @@ function renderDash() {
     bannerEl.innerHTML = '<div class="status-banner nonaktif">❌ Akun kamu nonaktif. Hubungi admin untuk informasi lebih lanjut.</div>';
   }
 
-  // QR Code
-  const qrData = JSON.stringify({ id: currentUser.id, nama: p.nama, no: p.no_anggota || 'PENDING', status: p.status });
-  QRCode.toCanvas(document.getElementById('ktaQR'), qrData, {
-    width: 72, margin: 1,
-    color: { dark: '#D4AF37', light: '#0d0906' }
-  });
+ // QR Code
+  try {
+    const qrData = JSON.stringify({ id: currentUser.id, nama: p.nama, no: p.no_anggota || 'PENDING', status: p.status });
+    QRCode.toCanvas(document.getElementById('ktaQR'), qrData, {
+      width: 72, margin: 1,
+      color: { dark: '#D4AF37', light: '#0d0906' }
+    });
+  } catch (err) {
+    console.warn('QR code gagal dibuat:', err);
+  }
 
   // Profil form
   document.getElementById('pNama').value = p.nama || '';
