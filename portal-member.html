@@ -778,7 +778,41 @@ function renderDash() {
   document.getElementById('pWa').value = p.whatsapp || '';
   document.getElementById('pDomisili').value = p.domisili || '';
   document.getElementById('pPcx').value = p.tahun_pcx || '';
-  document.getElementById('pEmail').value = currentUser.email || '';
+document.getElementById('pEmail').value = currentUser.email || '';
+}
+
+async function uploadAvatar(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Ukuran foto maksimal 2MB'); return; }
+
+  const btn = document.getElementById('avatarBtn');
+  btn.disabled = true;
+  btn.textContent = 'Mengunggah...';
+
+  const ext = file.name.split('.').pop();
+  const filePath = `${currentUser.id}/avatar.${ext}`;
+
+  const { error: uploadError } = await sb.storage.from('profile-photos').upload(filePath, file, { upsert: true });
+  if (uploadError) {
+    showToast('Gagal upload: ' + uploadError.message);
+    btn.disabled = false;
+    btn.textContent = 'Ganti Foto Profil';
+    return;
+  }
+
+  const { data } = sb.storage.from('profile-photos').getPublicUrl(filePath);
+  const fotoUrl = data.publicUrl + '?t=' + Date.now();
+
+  const { error: updateError } = await sb.from('profiles').update({ foto_url: fotoUrl }).eq('id', currentUser.id);
+  btn.disabled = false;
+  btn.textContent = 'Ganti Foto Profil';
+
+  if (updateError) { showToast('Gagal simpan foto: ' + updateError.message); return; }
+
+  currentProfile.foto_url = fotoUrl;
+  renderDash();
+  showToast('✓ Foto profil berhasil diperbarui');
 }
 
 function showPage(pageId, navEl) {
