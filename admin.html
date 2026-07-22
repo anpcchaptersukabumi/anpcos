@@ -70,7 +70,15 @@
   .checklist { max-height:50vh; overflow-y:auto; margin:14px 0; border:1px solid rgba(212,175,55,0.1); }
   .checklist-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; }
   .checklist-item:last-child { border-bottom:none; }
-  .checklist-item input[type=checkbox] { width:18px; height:18px; accent-color:var(--gold); cursor:pointer; }
+.checklist-item input[type=checkbox] { width:18px; height:18px; accent-color:var(--gold); cursor:pointer; }
+
+  /* ROUNDED CORNERS — kesan lebih premium */
+  .login-box, .member-card, .modal-box { border-radius: 16px; }
+  .login-box input, .login-box button, .search-wrap input, .btn-outline, .btn-solid,
+  .modal-box input, .modal-box textarea, .toast { border-radius: 10px; }
+  .section-btn, .tab-btn { border-radius: 8px; }
+  .badge, .event-badge, .tab-btn .count, .event-count-pill { border-radius: 999px; }
+  .icon-btn { border-radius: 50%; }
 </style>
 </head>
 <body>
