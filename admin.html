@@ -89,33 +89,75 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const ADMIN_PASSWORD = "anpc2026"; // <-- ganti kalau mau password baru
-
 let allMembers = [];
 let activeTab = "pending";
 
-function checkLogin() {
-  const val = document.getElementById('adminPass').value;
-  if (val === ADMIN_PASSWORD) {
-    sessionStorage.setItem('anpc_admin_ok', '1');
-    document.getElementById('loginGate').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    loadMembers();
-  } else {
-    document.getElementById('loginError').textContent = 'Password salah. Coba lagi.';
+async function checkLogin() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const pass = document.getElementById('adminPass').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.textContent = '';
+  if (!email || !pass) {
+    errEl.textContent = 'Isi email dan password.';
+    return;
   }
+  btn.disabled = true;
+  btn.textContent = 'Memeriksa...';
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+
+  if (error) {
+    errEl.textContent = 'Email atau password salah.';
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+    return;
+  }
+
+  const { data: profile, error: profileError } = await supabaseClient
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .single();
+
+  if (profileError || !profile || !['admin', 'pengurus'].includes(profile.role)) {
+    errEl.textContent = 'Akun ini tidak punya akses admin.';
+    await supabaseClient.auth.signOut();
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+    return;
+  }
+
+  showDashboard();
 }
 
-function logout() {
-  sessionStorage.removeItem('anpc_admin_ok');
+async function logout() {
+  await supabaseClient.auth.signOut();
   location.reload();
 }
 
-if (sessionStorage.getItem('anpc_admin_ok') === '1') {
+function showDashboard() {
   document.getElementById('loginGate').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
-  window.addEventListener('DOMContentLoaded', loadMembers);
+  loadMembers();
 }
+
+async function initAuthCheck() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+    if (profile && ['admin', 'pengurus'].includes(profile.role)) {
+      showDashboard();
+      return;
+    }
+    await supabaseClient.auth.signOut();
+  }
+}
+window.addEventListener('DOMContentLoaded', initAuthCheck);
 
 function showToast(msg) {
   const t = document.getElementById('toast');
