@@ -474,6 +474,202 @@ async function saveNoAnggota() {
   showToast('No. anggota berhasil diperbarui');
 }
 
+async function loadEvents() {
+  document.getElementById('eventListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('events').select('*').order('tanggal', { ascending: false });
+  if (error) {
+    document.getElementById('eventListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allEvents = data || [];
+  renderEventTabs();
+  renderEventsList();
+}
+
+function renderEventTabs() {
+  const today = new Date().toISOString().slice(0, 10);
+  const counts = {
+    mendatang: allEvents.filter(e => e.tanggal >= today).length,
+    selesai: allEvents.filter(e => e.tanggal < today).length,
+    semua: allEvents.length,
+  };
+  const tabDefs = [
+    { key: 'mendatang', label: 'Mendatang' },
+    { key: 'selesai', label: 'Selesai' },
+    { key: 'semua', label: 'Semua' },
+  ];
+  document.getElementById('eventTabs').innerHTML = tabDefs.map(t => `
+    <button class="tab-btn ${activeEventTab === t.key ? 'active' : ''}" onclick="setEventTab('${t.key}')">
+      ${t.label} <span class="count">${counts[t.key]}</span>
+    </button>
+  `).join('');
+}
+
+function setEventTab(key) {
+  activeEventTab = key;
+  renderEventTabs();
+  renderEventsList();
+}
+
+function renderEventsList() {
+  const today = new Date().toISOString().slice(0, 10);
+  let filtered = allEvents;
+  if (activeEventTab === 'mendatang') filtered = allEvents.filter(e => e.tanggal >= today);
+  else if (activeEventTab === 'selesai') filtered = allEvents.filter(e => e.tanggal < today);
+
+  const container = document.getElementById('eventListContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada event di kategori ini.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(e => {
+    const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `
+      <div class="member-card">
+        <div style="min-width:200px;flex:1;">
+          <div class="nama">${escapeHtml(e.nama)}</div>
+          <div class="member-meta">
+            <span>📅 ${tanggalFmt}</span>
+            ${e.lokasi ? `<span>📍 ${escapeHtml(e.lokasi)}</span>` : ''}
+          </div>
+          ${e.deskripsi ? `<div class="member-saran">💬 ${escapeHtml(e.deskripsi)}</div>` : ''}
+        </div>
+        <div class="action-row">
+          <button class="btn-outline" onclick="openAttendanceModal('${e.id}')">Kelola Kehadiran</button>
+          <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openEventModal('${e.id}')" title="Edit">✎</button>
+          <button class="icon-btn delete" onclick="deleteEvent('${e.id}','${escapeHtml(e.nama)}')" title="Hapus">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openEventModal(id) {
+  const modal = document.getElementById('eventModal');
+  modal.dataset.eventId = id || '';
+  if (id) {
+    const e = allEvents.find(x => x.id === id);
+    document.getElementById('eventModalTitle').textContent = 'Edit Event';
+    document.getElementById('eventNama').value = e.nama || '';
+    document.getElementById('eventDeskripsi').value = e.deskripsi || '';
+    document.getElementById('eventTanggal').value = e.tanggal || '';
+    document.getElementById('eventLokasi').value = e.lokasi || '';
+  } else {
+    document.getElementById('eventModalTitle').textContent = 'Tambah Event';
+    document.getElementById('eventNama').value = '';
+    document.getElementById('eventDeskripsi').value = '';
+    document.getElementById('eventTanggal').value = '';
+    document.getElementById('eventLokasi').value = '';
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeEventModal() {
+  document.getElementById('eventModal').classList.add('hidden');
+}
+
+async function saveEvent() {
+  const id = document.getElementById('eventModal').dataset.eventId;
+  const nama = document.getElementById('eventNama').value.trim();
+  const deskripsi = document.getElementById('eventDeskripsi').value.trim();
+  const tanggal = document.getElementById('eventTanggal').value;
+  const lokasi = document.getElementById('eventLokasi').value.trim();
+
+  if (!nama || !tanggal) { showToast('Nama dan tanggal wajib diisi'); return; }
+
+  const payload = { nama, deskripsi, tanggal, lokasi };
+  let error;
+  if (id) {
+    ({ error } = await supabaseClient.from('events').update(payload).eq('id', id));
+  } else {
+    ({ error } = await supabaseClient.from('events').insert(payload));
+  }
+  if (error) { showToast('Gagal menyimpan: ' + error.message); return; }
+  closeEventModal();
+  showToast(id ? 'Event berhasil diperbarui' : 'Event berhasil ditambahkan');
+  loadEvents();
+}
+
+async function deleteEvent(id, nama) {
+  if (!confirm(`Hapus event "${nama}"? Data kehadiran terkait juga akan terhapus.`)) return;
+  await supabaseClient.from('absensi').delete().eq('event_id', id);
+  await supabaseClient.from('event_members').delete().eq('event_id', id);
+  const { error } = await supabaseClient.from('events').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus event'); return; }
+  allEvents = allEvents.filter(x => x.id !== id);
+  renderEventTabs();
+  renderEventsList();
+  showToast(`Event "${nama}" dihapus`);
+}
+
+async function openAttendanceModal(eventId) {
+  currentAttendanceEventId = eventId;
+  const e = allEvents.find(x => x.id === eventId);
+  document.getElementById('attendanceEventName').textContent = e ? e.nama : '';
+  document.getElementById('attendanceChecklist').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  document.getElementById('attendanceModal').classList.remove('hidden');
+
+  const [{ data: profilesData, error: profilesError }, { data: absensiData, error: absensiError }] = await Promise.all([
+    supabaseClient.from('profiles').select('id, nama, no_anggota').eq('status', 'aktif').order('nama'),
+    supabaseClient.from('absensi').select('member_id').eq('event_id', eventId),
+  ]);
+
+  if (profilesError || absensiError) {
+    document.getElementById('attendanceChecklist').innerHTML = '<div class="empty-state">Gagal memuat data kehadiran.</div>';
+    return;
+  }
+
+  attendanceMemberIds = new Set((absensiData || []).map(a => a.member_id));
+  const activeMembers = profilesData || [];
+
+  if (activeMembers.length === 0) {
+    document.getElementById('attendanceChecklist').innerHTML = '<div class="empty-state">Belum ada anggota aktif.</div>';
+    return;
+  }
+
+  document.getElementById('attendanceChecklist').innerHTML = activeMembers.map(m => `
+    <label class="checklist-item">
+      <input type="checkbox" value="${m.id}" ${attendanceMemberIds.has(m.id) ? 'checked' : ''} onchange="toggleAttendanceCheckbox('${m.id}', this.checked)"/>
+      <span>${escapeHtml(m.nama || '(Belum lengkap)')} ${m.no_anggota ? `<span style="color:var(--grey); font-size:0.8rem;">(${escapeHtml(m.no_anggota)})</span>` : ''}</span>
+    </label>
+  `).join('');
+}
+
+function toggleAttendanceCheckbox(memberId, checked) {
+  if (checked) attendanceMemberIds.add(memberId);
+  else attendanceMemberIds.delete(memberId);
+}
+
+function closeAttendanceModal() {
+  document.getElementById('attendanceModal').classList.add('hidden');
+  currentAttendanceEventId = null;
+}
+
+async function saveAttendance() {
+  const eventId = currentAttendanceEventId;
+  if (!eventId) return;
+
+  const { data: existing } = await supabaseClient.from('absensi').select('member_id').eq('event_id', eventId);
+  const existingIds = new Set((existing || []).map(a => a.member_id));
+  const selectedIds = attendanceMemberIds;
+
+  const toAdd = [...selectedIds].filter(id => !existingIds.has(id));
+  const toRemove = [...existingIds].filter(id => !selectedIds.has(id));
+
+  if (toAdd.length > 0) {
+    const rows = toAdd.map(member_id => ({ event_id: eventId, member_id, hadir_at: new Date().toISOString() }));
+    const { error } = await supabaseClient.from('absensi').insert(rows);
+    if (error) { showToast('Gagal menyimpan sebagian data: ' + error.message); return; }
+  }
+  if (toRemove.length > 0) {
+    const { error } = await supabaseClient.from('absensi').delete().eq('event_id', eventId).in('member_id', toRemove);
+    if (error) { showToast('Gagal menghapus sebagian data: ' + error.message); return; }
+  }
+
+  closeAttendanceModal();
+  showToast('Kehadiran berhasil disimpan');
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str || '';
