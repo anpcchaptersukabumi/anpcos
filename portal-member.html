@@ -754,8 +754,26 @@ async function loadDash() {
   document.getElementById('authScreen').classList.remove('active');
   document.getElementById('dashScreen').classList.add('active');
   const { data: prof } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-  currentProfile = prof;
+currentProfile = prof;
   renderDash();
+}
+
+function normalizeSosmedUrl(platform, value) {
+  let v = value.trim();
+  if (v.startsWith('http://') || v.startsWith('https://')) return v;
+  v = v.replace(/^@/, '');
+  if (platform === 'facebook') return `https://facebook.com/${v}`;
+  if (platform === 'instagram') return `https://instagram.com/${v}`;
+  if (platform === 'tiktok') return `https://tiktok.com/@${v}`;
+  return v;
+}
+
+function renderSosmedIcons(p) {
+  const icons = [];
+  if (p.sosmed_facebook) icons.push(`<a href="${normalizeSosmedUrl('facebook', p.sosmed_facebook)}" target="_blank" rel="noopener" title="Facebook">📘</a>`);
+  if (p.sosmed_instagram) icons.push(`<a href="${normalizeSosmedUrl('instagram', p.sosmed_instagram)}" target="_blank" rel="noopener" title="Instagram">📷</a>`);
+  if (p.sosmed_tiktok) icons.push(`<a href="${normalizeSosmedUrl('tiktok', p.sosmed_tiktok)}" target="_blank" rel="noopener" title="TikTok">🎵</a>`);
+  return icons.join('');
 }
 
 function renderDash() {
