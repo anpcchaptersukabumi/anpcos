@@ -666,6 +666,7 @@ function showPage(pageId, navEl) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   if (navEl) navEl.classList.add('active');
+  if (pageId === 'eventPage') loadEvents();
 }
 
 async function saveProfil() {
