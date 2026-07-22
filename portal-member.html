@@ -846,18 +846,34 @@ function showPage(pageId, navEl) {
   if (pageId === 'eventPage') loadEvents();
 }
 
+function enableProfilEdit() {
+  document.querySelectorAll('.profil-editable').forEach(el => el.disabled = false);
+  document.getElementById('editProfileBtn').classList.add('hidden');
+  document.getElementById('saveProfilBtn').classList.remove('hidden');
+}
+
+function disableProfilEdit() {
+  document.querySelectorAll('.profil-editable').forEach(el => el.disabled = true);
+  document.getElementById('editProfileBtn').classList.remove('hidden');
+  document.getElementById('saveProfilBtn').classList.add('hidden');
+}
+
 async function saveProfil() {
   const updates = {
     nama: document.getElementById('pNama').value.trim(),
     whatsapp: document.getElementById('pWa').value.trim(),
     domisili: document.getElementById('pDomisili').value.trim(),
     tahun_pcx: document.getElementById('pPcx').value,
+    sosmed_facebook: document.getElementById('pFacebook').value.trim(),
+    sosmed_instagram: document.getElementById('pInstagram').value.trim(),
+    sosmed_tiktok: document.getElementById('pTiktok').value.trim(),
     updated_at: new Date().toISOString()
   };
   const { error } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
   if (!error) {
     currentProfile = { ...currentProfile, ...updates };
     renderDash();
+    disableProfilEdit();
     document.getElementById('saveOk').style.display='block';
     setTimeout(() => document.getElementById('saveOk').style.display='none', 3000);
     showToast('✓ Profil berhasil disimpan');
