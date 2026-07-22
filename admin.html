@@ -136,6 +136,36 @@
     <div class="action-buttons">
       <button class="btn-outline" onclick="closeEditNoModal()">Batal</button>
       <button class="btn-solid" onclick="saveNoAnggota()">Simpan</button>
+  </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="eventModal">
+  <div class="modal-box">
+    <h3 id="eventModalTitle">Tambah Event</h3>
+    <label>Nama Kegiatan</label>
+    <input type="text" id="eventNama" placeholder="Contoh: Kopdar Rutin Bulanan"/>
+    <label>Deskripsi</label>
+    <textarea id="eventDeskripsi" placeholder="Detail kegiatan..."></textarea>
+    <label>Tanggal</label>
+    <input type="date" id="eventTanggal"/>
+    <label>Lokasi</label>
+    <input type="text" id="eventLokasi" placeholder="Contoh: Alun-alun Sukabumi"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeEventModal()">Batal</button>
+      <button class="btn-solid" onclick="saveEvent()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="attendanceModal">
+  <div class="modal-box wide">
+    <h3>Kehadiran</h3>
+    <p id="attendanceEventName" style="color:var(--grey); margin-bottom:12px; font-size:0.9rem;"></p>
+    <div class="checklist" id="attendanceChecklist"></div>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeAttendanceModal()">Tutup</button>
+      <button class="btn-solid" onclick="saveAttendance()">Simpan Kehadiran</button>
     </div>
   </div>
 </div>
