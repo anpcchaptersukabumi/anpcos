@@ -534,15 +534,17 @@ function renderEventsList() {
     container.innerHTML = '<div class="empty-state">Belum ada event di kategori ini.</div>';
     return;
   }
-  container.innerHTML = filtered.map(e => {
+ container.innerHTML = filtered.map(e => {
     const tanggalFmt = new Date(e.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
     return `
       <div class="member-card">
+        ${e.gambar_url ? `<img src="${e.gambar_url}" style="width:64px; height:64px; object-fit:cover; flex-shrink:0;"/>` : ''}
         <div style="min-width:200px;flex:1;">
-          <div class="nama">${escapeHtml(e.nama)}</div>
+          <div class="nama">${escapeHtml(e.nama)} ${e.is_resmi === false ? '' : '<span class="badge badge-approved" style="margin-left:8px; vertical-align:middle;">RESMI</span>'}</div>
           <div class="member-meta">
             <span>📅 ${tanggalFmt}</span>
             ${e.lokasi ? `<span>📍 ${escapeHtml(e.lokasi)}</span>` : ''}
+            ${e.jarak ? `<span>🏍️ ${escapeHtml(e.jarak)}</span>` : ''}
           </div>
           ${e.deskripsi ? `<div class="member-saran">💬 ${escapeHtml(e.deskripsi)}</div>` : ''}
         </div>
