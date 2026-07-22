@@ -91,9 +91,21 @@
       <button class="btn-outline" onclick="logout()">Keluar</button>
     </div>
   </header>
-  <main>
-    <div class="tabs" id="tabs"></div>
-    <div id="listContainer"></div>
+<main>
+    <div class="section-switch">
+      <button class="section-btn active" id="btnSectionMembers" onclick="switchSection('members')">📋 Pendaftaran Member</button>
+      <button class="section-btn" id="btnSectionProfiles" onclick="switchSection('profiles')">🎖️ Anggota Aktif</button>
+    </div>
+
+    <div id="sectionMembers">
+      <div class="tabs" id="tabs"></div>
+      <div id="listContainer"></div>
+    </div>
+
+    <div id="sectionProfiles" class="hidden">
+      <div class="tabs" id="profileTabs"></div>
+      <div id="profileListContainer"></div>
+    </div>
   </main>
 </div>
 
