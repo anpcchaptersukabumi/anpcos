@@ -344,6 +344,20 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .btn-save, .stat-box, .btn-rsvp, .modal-action-btn { border-radius: 10px; }
 .event-badge, .event-count-pill, .kta-status, .kta-header-badge { border-radius: 999px; }
 .nav-item { border-radius: 0 10px 10px 0; }
+.topbar-avatar, .kta-photo { overflow: hidden; }
+.topbar-avatar img, .kta-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.profil-avatar{width:88px;height:88px;border-radius:50%;flex-shrink:0;overflow:hidden;
+  background:rgba(212,175,55,0.1);border:2px solid rgba(212,175,55,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-weight:700;font-size:2rem;color:var(--gold);}
+.profil-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.btn-photo{background:transparent;border:1px solid var(--gold);color:var(--gold);
+  padding:9px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.78rem;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:10px;}
+.btn-photo:hover{background:rgba(212,175,55,0.1);}
+.btn-photo:disabled{opacity:.6;cursor:not-allowed;}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .sidebar{display:none;}
