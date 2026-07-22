@@ -176,6 +176,10 @@ let activeTab = "pending";
 let allProfiles = [];
 let activeProfileTab = "aktif";
 let activeSection = "members";
+let allEvents = [];
+let activeEventTab = "mendatang";
+let currentAttendanceEventId = null;
+let attendanceMemberIds = new Set();
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
