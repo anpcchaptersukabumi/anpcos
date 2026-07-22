@@ -443,19 +443,19 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   </div>
 
   <div class="layout">
-    <aside class="sidebar">
+   <aside class="sidebar">
       <div class="sidebar-section">Member</div>
-      <div class="nav-item active" onclick="showPage('ktaPage',this)">
+      <div class="nav-item active" data-page="ktaPage" onclick="showPage('ktaPage')">
         <span class="nav-icon">🪪</span> KTA Digital
       </div>
-      <div class="nav-item" onclick="showPage('profilPage',this)">
+      <div class="nav-item" data-page="profilPage" onclick="showPage('profilPage')">
         <span class="nav-icon">👤</span> Profil Saya
       </div>
       <div class="sidebar-section">Komunitas</div>
-      <div class="nav-item" onclick="showPage('eventPage',this)">
+      <div class="nav-item" data-page="eventPage" onclick="showPage('eventPage')">
         <span class="nav-icon">📅</span> Event & Kopdar
       </div>
-      <div class="nav-item" onclick="showPage('leaderPage',this)">
+      <div class="nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="nav-icon">🏆</span> Leaderboard
       </div>
       <div class="sidebar-section">Info</div>
@@ -464,6 +464,20 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       </div>
     </aside>
 
+    <nav class="bottom-nav">
+      <div class="bottom-nav-item active" data-page="ktaPage" onclick="showPage('ktaPage')">
+        <span class="bottom-nav-icon">🪪</span><span>KTA</span>
+      </div>
+      <div class="bottom-nav-item" data-page="profilPage" onclick="showPage('profilPage')">
+        <span class="bottom-nav-icon">👤</span><span>Profil</span>
+      </div>
+      <div class="bottom-nav-item" data-page="eventPage" onclick="showPage('eventPage')">
+        <span class="bottom-nav-icon">📅</span><span>Event</span>
+      </div>
+      <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
+        <span class="bottom-nav-icon">🏆</span><span>Ranking</span>
+      </div>
+    </nav>
     <main class="main-content">
 
       <!-- KTA PAGE -->
