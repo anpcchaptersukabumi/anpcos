@@ -710,15 +710,10 @@ async function doRegister() {
 
   btn.disabled=true; btn.textContent='Memeriksa...';
 
-  // Cari data approved dulu (paling prioritas, hindari masalah duplikat & besar-kecil huruf email)
-  const { data: approvedRows } = await sb.from('members').select('status,nama,whatsapp').ilike('email', email).eq('status','approved').limit(1);
-  const approved = approvedRows && approvedRows.length > 0 ? approvedRows[0] : null;
+  const { data: rows } = await sb.rpc('check_member_registration', { check_email: email });
+  const latest = rows && rows.length > 0 ? rows[0] : null;
 
-  if (!approved) {
-    // Nggak ada yang approved, cek data terbaru dengan email ini buat kasih pesan yang tepat
-    const { data: anyRows } = await sb.from('members').select('status').ilike('email', email).order('created_at',{ascending:false}).limit(1);
-    const latest = anyRows && anyRows.length > 0 ? anyRows[0] : null;
-
+  if (!latest || latest.status !== 'approved') {
     if (!latest) {
       err.textContent='Email belum terdaftar. Isi form registrasi di website ANPC terlebih dahulu.';
     } else if (latest.status === 'rejected') {
@@ -728,7 +723,7 @@ async function doRegister() {
     }
     err.style.display='block'; btn.disabled=false; btn.textContent='Buat Akun'; return;
   }
-  const m = approved;
+  const m = latest;
 
   btn.textContent='Membuat akun...';
   const { error } = await sb.auth.signUp({
