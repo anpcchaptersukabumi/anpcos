@@ -483,6 +483,29 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   .garasi-photo-wrap{aspect-ratio:16/10;order:-1;}
   .garasi-spec-grid{grid-template-columns:repeat(3,1fr);}
 }
+
+/* BADGE PENCAPAIAN */
+.badge-summary{display:flex;align-items:center;gap:10px;background:var(--blk3);
+  border:1px solid rgba(212,175,55,0.15);border-radius:12px;padding:0.9rem 1.2rem;margin-bottom:1.5rem;
+  font-size:0.85rem;color:var(--grey-l);}
+.badge-summary b{color:var(--gold);font-family:'Cinzel',serif;}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;}
+.badge-card{background:var(--blk3);border:1px solid rgba(212,175,55,0.12);border-radius:14px;
+  padding:1.2rem 1rem;text-align:center;transition:transform 0.2s,border-color 0.2s;}
+.badge-card.earned{border-color:rgba(212,175,55,0.4);background:linear-gradient(160deg,rgba(212,175,55,0.08),var(--blk3));}
+.badge-card.earned:hover{transform:translateY(-3px);}
+.badge-card.locked{opacity:0.55;}
+.badge-icon{font-size:2.2rem;margin-bottom:0.6rem;filter:none;}
+.badge-card.locked .badge-icon{filter:grayscale(1);}
+.badge-nama{font-weight:700;font-size:0.88rem;color:var(--grey-l);margin-bottom:4px;}
+.badge-card.earned .badge-nama{color:var(--white);}
+.badge-deskripsi{font-size:0.7rem;color:var(--grey);line-height:1.4;margin-bottom:8px;min-height:1.4em;}
+.badge-status{font-size:0.66rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  padding:4px 10px;border-radius:999px;display:inline-block;}
+.badge-status.earned{background:rgba(212,175,55,0.15);color:var(--gold);border:1px solid rgba(212,175,55,0.4);}
+.badge-status.locked{background:var(--blk4);color:var(--grey);border:1px solid rgba(255,255,255,0.08);}
+.badge-progress{font-size:0.66rem;color:var(--grey);margin-top:6px;line-height:1.5;}
+
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -606,6 +629,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="nav-icon">🏍️</span> Seberapa ANPC
       </div>
+      <div class="nav-item" data-page="badgePage" onclick="showPage('badgePage')">
+        <span class="nav-icon">🏆</span> Badge Pencapaian
+      </div>
       <div class="nav-item" data-page="kenalanPage" onclick="showPage('kenalanPage')">
         <span class="nav-icon">👋</span> Kenalan Yuk
       </div>
@@ -633,6 +659,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       </div>
       <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="bottom-nav-icon">🏍️</span><span>Mileage</span>
+      </div>
+      <div class="bottom-nav-item" data-page="badgePage" onclick="showPage('badgePage')">
+        <span class="bottom-nav-icon">🏆</span><span>Badge</span>
       </div>
       <div class="bottom-nav-item" data-page="kenalanPage" onclick="showPage('kenalanPage')">
         <span class="bottom-nav-icon">👋</span><span>Kenalan</span>
@@ -798,6 +827,19 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
 
         <div id="leaderboardContainer" style="color:var(--grey);font-size:.9rem;padding:3rem 0;">Memuat data...</div>
+      </div>
+
+      <!-- BADGE PENCAPAIAN PAGE -->
+      <div class="page" id="badgePage">
+        <div class="page-header">
+          <div class="page-eyebrow">Koleksi Pencapaian</div>
+          <h1 class="page-title">BADGE <span class="gold">PENCAPAIAN</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <div class="badge-summary" id="badgeSummary">Memuat data pencapaian...</div>
+        <div class="badge-grid" id="badgeGrid">
+          <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;grid-column:1/-1;">Memuat badge...</div>
+        </div>
       </div>
 
       <!-- KENALAN YUK PAGE -->
@@ -1083,6 +1125,7 @@ function showPage(pageId) {
   if (pageId === 'pengurusPage' && !pengurusLoaded) loadPengurus();
   if (pageId === 'kenalanPage' && !kenalanLoaded) loadKenalan();
   if (pageId === 'garasiPage' && !garasiLoaded) loadGarasi();
+  if (pageId === 'badgePage' && !badgeLoaded) loadBadgeData();
 }
 
 async function saveProfil() {
@@ -1207,6 +1250,8 @@ let kenalanLoaded = false;
 let allKenalan = [];
 let garasiLoaded = false;
 let allGarasi = [];
+let badgeLoaded = false;
+let allBadgesData = [];
 
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboardContainer');
@@ -1629,6 +1674,48 @@ async function deleteGarasiItem(id) {
   allGarasi = allGarasi.filter(x => x.id !== id);
   renderGarasi();
   showToast('Kendaraan dihapus');
+}
+
+async function loadBadgeData() {
+  const grid = document.getElementById('badgeGrid');
+  const summary = document.getElementById('badgeSummary');
+  try {
+    const { data, error } = await sb.rpc('get_my_badges');
+    if (error) throw error;
+    badgeLoaded = true;
+    allBadgesData = data || [];
+    renderBadges();
+  } catch (err) {
+    grid.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;grid-column:1/-1;">Gagal memuat data badge.</div>';
+    summary.textContent = '';
+  }
+}
+
+function renderBadges() {
+  const grid = document.getElementById('badgeGrid');
+  const summary = document.getElementById('badgeSummary');
+
+  if (allBadgesData.length === 0) {
+    summary.textContent = '';
+    grid.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;grid-column:1/-1;">Belum ada badge yang tersedia. Nantikan update dari pengurus!</div>';
+    return;
+  }
+
+  const earnedCount = allBadgesData.filter(b => b.earned).length;
+  summary.innerHTML = `Kamu udah raih <b>${earnedCount} dari ${allBadgesData.length}</b> badge yang tersedia.`;
+
+  grid.innerHTML = allBadgesData.map(b => {
+    const kmProgress = Number(b.my_km || 0).toFixed(0);
+    const kmTarget = Number(b.syarat_km || 0).toFixed(0);
+    return `
+      <div class="badge-card ${b.earned ? 'earned' : 'locked'}">
+        <div class="badge-icon">${b.icon || '🏆'}</div>
+        <div class="badge-nama">${escapeHtmlP(b.nama)}</div>
+        <div class="badge-deskripsi">${escapeHtmlP(b.deskripsi || '')}</div>
+        <div class="badge-status ${b.earned ? 'earned' : 'locked'}">${b.earned ? '✓ Diraih' : '🔒 Terkunci'}</div>
+        ${!b.earned ? `<div class="badge-progress">${b.my_kehadiran || 0}/${b.syarat_kehadiran} kehadiran · ${kmProgress}/${kmTarget} km</div>` : ''}
+      </div>`;
+  }).join('');
 }
 
 function showToast(msg) {
