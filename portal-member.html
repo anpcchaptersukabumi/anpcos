@@ -546,6 +546,25 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .bottom-nav-item.active{color:var(--gold);}
 .bottom-nav-icon{font-size:1.1rem;}
 
+/* MORE MENU (mobile bottom sheet) */
+.more-menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:150;}
+.more-menu-overlay.show{display:block;}
+.more-menu-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--blk2);
+  border:1px solid rgba(212,175,55,0.2);border-bottom:none;border-radius:18px 18px 0 0;
+  padding:0.8rem 1.1rem calc(1.2rem + env(safe-area-inset-bottom));
+  animation:moreMenuSlideUp 0.22s ease-out;}
+.more-menu-handle{width:38px;height:4px;background:rgba(255,255,255,0.2);border-radius:999px;margin:0 auto 0.9rem;}
+.more-menu-item{display:flex;align-items:center;gap:12px;padding:13px 8px;color:var(--grey-l);
+  font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.95rem;cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,0.06);}
+.more-menu-item:last-child{border-bottom:none;}
+.more-menu-item:active{background:rgba(212,175,55,0.07);}
+.more-menu-icon{font-size:1.2rem;width:26px;text-align:center;flex-shrink:0;}
+@keyframes moreMenuSlideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@media(min-width:769px){
+  .more-menu-overlay{display:none !important;}
+}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .sidebar{display:none;}
@@ -667,31 +686,43 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="bottom-nav-item active" data-page="ktaPage" onclick="showPage('ktaPage')">
         <span class="bottom-nav-icon">🪪</span><span>KTA</span>
       </div>
-      <div class="bottom-nav-item" data-page="profilPage" onclick="showPage('profilPage')">
-        <span class="bottom-nav-icon">👤</span><span>Profil</span>
-      </div>
-      <div class="bottom-nav-item" data-page="garasiPage" onclick="showPage('garasiPage')">
-        <span class="bottom-nav-icon">🏠</span><span>Garasi</span>
-      </div>
       <div class="bottom-nav-item" data-page="eventPage" onclick="showPage('eventPage')">
         <span class="bottom-nav-icon">📅</span><span>Event</span>
       </div>
       <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="bottom-nav-icon">🏍️</span><span>Mileage</span>
       </div>
-      <div class="bottom-nav-item" data-page="badgePage" onclick="showPage('badgePage')">
-        <span class="bottom-nav-icon">🏆</span><span>Badge</span>
-      </div>
       <div class="bottom-nav-item" data-page="kenalanPage" onclick="showPage('kenalanPage')">
         <span class="bottom-nav-icon">👋</span><span>Kenalan</span>
       </div>
-      <div class="bottom-nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
-        <span class="bottom-nav-icon">🎗️</span><span>Pengurus</span>
-      </div>
-      <div class="bottom-nav-item" data-page="kasPage" onclick="showPage('kasPage')">
-        <span class="bottom-nav-icon">💰</span><span>Kas</span>
+      <div class="bottom-nav-item" id="moreNavBtn" onclick="toggleMoreMenu()">
+        <span class="bottom-nav-icon">☰</span><span>Lainnya</span>
       </div>
     </nav>
+
+    <div class="more-menu-overlay" id="moreMenuOverlay" onclick="closeMoreMenuOnBackdrop(event)">
+      <div class="more-menu-sheet">
+        <div class="more-menu-handle"></div>
+        <div class="more-menu-item" data-page="profilPage" onclick="showPage('profilPage'); closeMoreMenu();">
+          <span class="more-menu-icon">👤</span> Profil Saya
+        </div>
+        <div class="more-menu-item" data-page="garasiPage" onclick="showPage('garasiPage'); closeMoreMenu();">
+          <span class="more-menu-icon">🏠</span> Garasi Kendaraan
+        </div>
+        <div class="more-menu-item" data-page="badgePage" onclick="showPage('badgePage'); closeMoreMenu();">
+          <span class="more-menu-icon">🏆</span> Badge Pencapaian
+        </div>
+        <div class="more-menu-item" data-page="pengurusPage" onclick="showPage('pengurusPage'); closeMoreMenu();">
+          <span class="more-menu-icon">🎗️</span> Struktur Pengurus
+        </div>
+        <div class="more-menu-item" data-page="kasPage" onclick="showPage('kasPage'); closeMoreMenu();">
+          <span class="more-menu-icon">💰</span> Kas Chapter
+        </div>
+        <div class="more-menu-item" onclick="window.open('index.html','_blank'); closeMoreMenu();">
+          <span class="more-menu-icon">🌐</span> Website ANPC
+        </div>
+      </div>
+    </div>
 
 
     <main class="main-content">
@@ -1158,6 +1189,11 @@ function showPage(pageId) {
   document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
+  const morePages = ['profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage'];
+  if (morePages.includes(pageId)) {
+    const moreBtn = document.getElementById('moreNavBtn');
+    if (moreBtn) moreBtn.classList.add('active');
+  }
   if (pageId === 'eventPage') loadEvents();
   if (pageId === 'leaderPage') loadLeaderboard();
   if (pageId === 'pengurusPage' && !pengurusLoaded) loadPengurus();
@@ -1165,6 +1201,18 @@ function showPage(pageId) {
   if (pageId === 'garasiPage' && !garasiLoaded) loadGarasi();
   if (pageId === 'badgePage' && !badgeLoaded) loadBadgeData();
   if (pageId === 'kasPage' && !kasLoaded) loadKasData();
+}
+
+function toggleMoreMenu() {
+  document.getElementById('moreMenuOverlay').classList.toggle('show');
+}
+
+function closeMoreMenu() {
+  document.getElementById('moreMenuOverlay').classList.remove('show');
+}
+
+function closeMoreMenuOnBackdrop(e) {
+  if (e.target.id === 'moreMenuOverlay') closeMoreMenu();
 }
 
 async function saveProfil() {
