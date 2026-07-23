@@ -70,15 +70,7 @@
   .checklist { max-height:50vh; overflow-y:auto; margin:14px 0; border:1px solid rgba(212,175,55,0.1); }
   .checklist-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; }
   .checklist-item:last-child { border-bottom:none; }
-.checklist-item input[type=checkbox] { width:18px; height:18px; accent-color:var(--gold); cursor:pointer; }
-
-  /* ROUNDED CORNERS — kesan lebih premium */
-  .login-box, .member-card, .modal-box { border-radius: 16px; }
-  .login-box input, .login-box button, .search-wrap input, .btn-outline, .btn-solid,
-  .modal-box input, .modal-box textarea, .toast { border-radius: 10px; }
-  .section-btn, .tab-btn { border-radius: 8px; }
-  .badge, .event-badge, .tab-btn .count, .event-count-pill { border-radius: 999px; }
-  .icon-btn { border-radius: 50%; }
+  .checklist-item input[type=checkbox] { width:18px; height:18px; accent-color:var(--gold); cursor:pointer; }
 </style>
 </head>
 <body>
@@ -112,6 +104,8 @@
       <button class="section-btn active" id="btnSectionMembers" onclick="switchSection('members')">📋 Pendaftaran Member</button>
       <button class="section-btn" id="btnSectionProfiles" onclick="switchSection('profiles')">🎖️ Anggota Aktif</button>
       <button class="section-btn" id="btnSectionEvents" onclick="switchSection('events')">🏍️ Event & Kopdar</button>
+      <button class="section-btn" id="btnSectionKegiatan" onclick="switchSection('kegiatan')">📸 Kegiatan Kami</button>
+      <button class="section-btn" id="btnSectionGaleri" onclick="switchSection('galeri')">🖼️ Galeri</button>
     </div>
 
     <div id="sectionMembers">
@@ -130,6 +124,20 @@
         <button class="btn-outline" onclick="openEventModal()">+ Tambah Event</button>
       </div>
       <div id="eventListContainer"></div>
+    </div>
+
+    <div id="sectionKegiatan" class="hidden">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
+        <button class="btn-outline" onclick="openKegiatanModal()">+ Tambah Kegiatan</button>
+      </div>
+      <div id="kegiatanListContainer"></div>
+    </div>
+
+    <div id="sectionGaleri" class="hidden">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
+        <button class="btn-outline" onclick="openGaleriModal()">+ Tambah Foto</button>
+      </div>
+      <div id="galeriListContainer" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px;"></div>
     </div>
   </main>
 </div>
@@ -178,6 +186,44 @@
     </div>
   </div>
 </div>
+
+<div class="modal-overlay hidden" id="kegiatanModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="kegiatanModalTitle">Tambah Kegiatan</h3>
+    <label>Foto Kegiatan</label>
+    <input type="file" id="kegiatanFoto" accept="image/*" onchange="previewKegiatanFoto(event)"/>
+    <img id="kegiatanFotoPreview" class="hidden" style="width:100%; max-height:160px; object-fit:cover; margin-top:8px;"/>
+    <label>Icon (emoji)</label>
+    <input type="text" id="kegiatanIcon" placeholder="Contoh: 🤝" maxlength="4"/>
+    <label>Judul</label>
+    <input type="text" id="kegiatanJudul" placeholder="Contoh: Bakti Sosial"/>
+    <label>Deskripsi</label>
+    <textarea id="kegiatanDeskripsi" placeholder="Deskripsi singkat kegiatan..."></textarea>
+    <label>Urutan Tampil (angka kecil tampil duluan)</label>
+    <input type="number" id="kegiatanUrutan" placeholder="0"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeKegiatanModal()">Batal</button>
+      <button class="btn-solid" onclick="saveKegiatan()" id="saveKegiatanBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="galeriModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="galeriModalTitle">Tambah Foto Galeri</h3>
+    <label>Foto</label>
+    <input type="file" id="galeriFoto" accept="image/*" onchange="previewGaleriFoto(event)"/>
+    <img id="galeriFotoPreview" class="hidden" style="width:100%; max-height:160px; object-fit:cover; margin-top:8px;"/>
+    <label>Keterangan (opsional)</label>
+    <input type="text" id="galeriKeterangan" placeholder="Contoh: Kopdar Sukabumi Juli 2026"/>
+    <label>Urutan Tampil (angka kecil tampil duluan)</label>
+    <input type="number" id="galeriUrutan" placeholder="0"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeGaleriModal()">Batal</button>
+      <button class="btn-solid" onclick="saveGaleri()" id="saveGaleriBtn">Simpan</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay hidden" id="attendanceModal">
   <div class="modal-box wide">
     <h3>Kehadiran</h3>
@@ -200,6 +246,8 @@ let allEvents = [];
 let activeEventTab = "mendatang";
 let currentAttendanceEventId = null;
 let attendanceMemberIds = new Set();
+let allKegiatan = [];
+let allGaleri = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -317,7 +365,7 @@ function renderList() {
   const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
   let filtered = activeTab === 'all' ? allMembers : allMembers.filter(m => m.status === activeTab);
   if (search) {
-    filtered = filtered.filter(m => (m.nama + m.whatsapp + (m.domisili||'') + (m.email||'')).toLowerCase().includes(search));
+    filtered = filtered.filter(m => (m.nama + m.whatsapp + (m.domisili||'')).toLowerCase().includes(search));
   }
   const container = document.getElementById('listContainer');
   if (filtered.length === 0) {
@@ -334,7 +382,6 @@ function renderList() {
           <div class="nama">${escapeHtml(m.nama)}</div>
           <div class="member-meta">
             <span>📱 ${escapeHtml(m.whatsapp)}</span>
-            ${m.email ? `<span>✉️ ${escapeHtml(m.email)}</span>` : ''}
             ${m.domisili ? `<span>📍 ${escapeHtml(m.domisili)}</span>` : ''}
             <span>📅 ${date}</span>
           </div>
@@ -383,9 +430,13 @@ function switchSection(name) {
   document.getElementById('btnSectionMembers').classList.toggle('active', name === 'members');
   document.getElementById('btnSectionProfiles').classList.toggle('active', name === 'profiles');
   document.getElementById('btnSectionEvents').classList.toggle('active', name === 'events');
+  document.getElementById('btnSectionKegiatan').classList.toggle('active', name === 'kegiatan');
+  document.getElementById('btnSectionGaleri').classList.toggle('active', name === 'galeri');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
   document.getElementById('sectionEvents').classList.toggle('hidden', name !== 'events');
+  document.getElementById('sectionKegiatan').classList.toggle('hidden', name !== 'kegiatan');
+  document.getElementById('sectionGaleri').classList.toggle('hidden', name !== 'galeri');
   document.getElementById('searchInput').value = '';
   if (name === 'profiles') {
     if (allProfiles.length === 0) loadProfiles();
@@ -393,6 +444,10 @@ function switchSection(name) {
   } else if (name === 'events') {
     if (allEvents.length === 0) loadEvents();
     else { renderEventTabs(); renderEventsList(); }
+  } else if (name === 'kegiatan') {
+    loadKegiatan();
+  } else if (name === 'galeri') {
+    loadGaleri();
   } else {
     renderList();
   }
@@ -668,6 +723,242 @@ async function deleteEvent(id, nama) {
   renderEventTabs();
   renderEventsList();
   showToast(`Event "${nama}" dihapus`);
+}
+
+/* ===== KEGIATAN KAMI ===== */
+async function loadKegiatan() {
+  document.getElementById('kegiatanListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('kegiatan_kami').select('*').order('urutan', { ascending: true });
+  if (error) {
+    document.getElementById('kegiatanListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allKegiatan = data || [];
+  renderKegiatanList();
+}
+
+function renderKegiatanList() {
+  const container = document.getElementById('kegiatanListContainer');
+  if (allKegiatan.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada kegiatan. Klik "+ Tambah Kegiatan" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = allKegiatan.map(k => `
+    <div class="member-card">
+      ${k.foto_url ? `<img src="${k.foto_url}" style="width:64px; height:64px; object-fit:cover; flex-shrink:0; border-radius:10px;"/>` : `<div style="width:64px;height:64px;flex-shrink:0;border-radius:10px;background:var(--black-4);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">${k.icon || '🏍️'}</div>`}
+      <div style="min-width:200px;flex:1;">
+        <div class="nama">${k.icon || ''} ${escapeHtml(k.judul)}</div>
+        <div class="member-meta"><span>Urutan: ${k.urutan ?? 0}</span></div>
+        ${k.deskripsi ? `<div class="member-saran">💬 ${escapeHtml(k.deskripsi)}</div>` : ''}
+      </div>
+      <div class="action-row">
+        <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openKegiatanModal('${k.id}')" title="Edit">✎</button>
+        <button class="icon-btn delete" onclick="deleteKegiatan('${k.id}','${escapeHtml(k.judul)}')" title="Hapus">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function previewKegiatanFoto(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('kegiatanFotoPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+}
+
+async function uploadKegiatanImage(file) {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const { error } = await supabaseClient.storage.from('kegiatan-images').upload(fileName, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from('kegiatan-images').getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
+function openKegiatanModal(id) {
+  const modal = document.getElementById('kegiatanModal');
+  modal.dataset.kegiatanId = id || '';
+  document.getElementById('kegiatanFoto').value = '';
+  const preview = document.getElementById('kegiatanFotoPreview');
+  if (id) {
+    const k = allKegiatan.find(x => x.id === id);
+    document.getElementById('kegiatanModalTitle').textContent = 'Edit Kegiatan';
+    document.getElementById('kegiatanIcon').value = k.icon || '';
+    document.getElementById('kegiatanJudul').value = k.judul || '';
+    document.getElementById('kegiatanDeskripsi').value = k.deskripsi || '';
+    document.getElementById('kegiatanUrutan').value = k.urutan ?? 0;
+    if (k.foto_url) { preview.src = k.foto_url; preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  } else {
+    document.getElementById('kegiatanModalTitle').textContent = 'Tambah Kegiatan';
+    document.getElementById('kegiatanIcon').value = '';
+    document.getElementById('kegiatanJudul').value = '';
+    document.getElementById('kegiatanDeskripsi').value = '';
+    document.getElementById('kegiatanUrutan').value = allKegiatan.length;
+    preview.classList.add('hidden');
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeKegiatanModal() {
+  document.getElementById('kegiatanModal').classList.add('hidden');
+}
+
+async function saveKegiatan() {
+  const id = document.getElementById('kegiatanModal').dataset.kegiatanId;
+  const icon = document.getElementById('kegiatanIcon').value.trim();
+  const judul = document.getElementById('kegiatanJudul').value.trim();
+  const deskripsi = document.getElementById('kegiatanDeskripsi').value.trim();
+  const urutan = parseInt(document.getElementById('kegiatanUrutan').value) || 0;
+  const fotoFile = document.getElementById('kegiatanFoto').files[0];
+
+  if (!judul) { showToast('Judul wajib diisi'); return; }
+
+  const btn = document.getElementById('saveKegiatanBtn');
+  btn.disabled = true;
+  btn.textContent = fotoFile ? 'Mengunggah foto...' : 'Menyimpan...';
+
+  const payload = { judul, deskripsi, icon: icon || '🏍️', urutan };
+
+  try {
+    if (fotoFile) payload.foto_url = await uploadKegiatanImage(fotoFile);
+    let error;
+    if (id) ({ error } = await supabaseClient.from('kegiatan_kami').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('kegiatan_kami').insert(payload));
+    if (error) throw error;
+    closeKegiatanModal();
+    showToast(id ? 'Kegiatan berhasil diperbarui' : 'Kegiatan berhasil ditambahkan');
+    loadKegiatan();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteKegiatan(id, judul) {
+  if (!confirm(`Hapus kegiatan "${judul}"?`)) return;
+  const { error } = await supabaseClient.from('kegiatan_kami').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus kegiatan'); return; }
+  allKegiatan = allKegiatan.filter(x => x.id !== id);
+  renderKegiatanList();
+  showToast(`Kegiatan "${judul}" dihapus`);
+}
+
+/* ===== GALERI ===== */
+async function loadGaleri() {
+  document.getElementById('galeriListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('galeri').select('*').order('urutan', { ascending: true });
+  if (error) {
+    document.getElementById('galeriListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allGaleri = data || [];
+  renderGaleriList();
+}
+
+function renderGaleriList() {
+  const container = document.getElementById('galeriListContainer');
+  if (allGaleri.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada foto galeri. Klik "+ Tambah Foto" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = allGaleri.map(g => `
+    <div style="background:var(--black-3); border:1px solid rgba(212,175,55,0.1); border-radius:12px; overflow:hidden;">
+      <img src="${g.foto_url}" style="width:100%; aspect-ratio:1; object-fit:cover; display:block;"/>
+      <div style="padding:8px 10px;">
+        <div style="font-size:0.75rem; color:var(--grey-light); margin-bottom:6px; min-height:1.2em;">${g.keterangan ? escapeHtml(g.keterangan) : ''}</div>
+        <div style="display:flex; gap:6px;">
+          <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openGaleriModal('${g.id}')" title="Edit">✎</button>
+          <button class="icon-btn delete" onclick="deleteGaleri('${g.id}')" title="Hapus">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function previewGaleriFoto(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('galeriFotoPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+}
+
+async function uploadGaleriImage(file) {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const { error } = await supabaseClient.storage.from('galeri-images').upload(fileName, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from('galeri-images').getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
+function openGaleriModal(id) {
+  const modal = document.getElementById('galeriModal');
+  modal.dataset.galeriId = id || '';
+  document.getElementById('galeriFoto').value = '';
+  const preview = document.getElementById('galeriFotoPreview');
+  if (id) {
+    const g = allGaleri.find(x => x.id === id);
+    document.getElementById('galeriModalTitle').textContent = 'Edit Foto Galeri';
+    document.getElementById('galeriKeterangan').value = g.keterangan || '';
+    document.getElementById('galeriUrutan').value = g.urutan ?? 0;
+    if (g.foto_url) { preview.src = g.foto_url; preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  } else {
+    document.getElementById('galeriModalTitle').textContent = 'Tambah Foto Galeri';
+    document.getElementById('galeriKeterangan').value = '';
+    document.getElementById('galeriUrutan').value = allGaleri.length;
+    preview.classList.add('hidden');
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeGaleriModal() {
+  document.getElementById('galeriModal').classList.add('hidden');
+}
+
+async function saveGaleri() {
+  const id = document.getElementById('galeriModal').dataset.galeriId;
+  const keterangan = document.getElementById('galeriKeterangan').value.trim();
+  const urutan = parseInt(document.getElementById('galeriUrutan').value) || 0;
+  const fotoFile = document.getElementById('galeriFoto').files[0];
+
+  if (!id && !fotoFile) { showToast('Foto wajib diunggah'); return; }
+
+  const btn = document.getElementById('saveGaleriBtn');
+  btn.disabled = true;
+  btn.textContent = fotoFile ? 'Mengunggah foto...' : 'Menyimpan...';
+
+  const payload = { keterangan, urutan };
+
+  try {
+    if (fotoFile) payload.foto_url = await uploadGaleriImage(fotoFile);
+    let error;
+    if (id) ({ error } = await supabaseClient.from('galeri').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('galeri').insert(payload));
+    if (error) throw error;
+    closeGaleriModal();
+    showToast(id ? 'Foto berhasil diperbarui' : 'Foto berhasil ditambahkan');
+    loadGaleri();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteGaleri(id) {
+  if (!confirm('Hapus foto ini dari galeri?')) return;
+  const { error } = await supabaseClient.from('galeri').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus foto'); return; }
+  allGaleri = allGaleri.filter(x => x.id !== id);
+  renderGaleriList();
+  showToast('Foto dihapus');
 }
 
 async function openAttendanceModal(eventId) {
