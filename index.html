@@ -586,20 +586,14 @@ loadGaleriPublic();
   });
 
   // Kalau sebelumnya user nyalain musik, coba lanjut otomatis saat halaman dibuka lagi.
-  // Kalau browser (terutama di HP) blokir autoplay tanpa sentuhan langsung,
-  // tunggu sentuhan/klik pertama di halaman baru mulai muter.
+  // Kalau browser blokir (karena belum ada sentuhan user di halaman ini),
+  // nggak apa-apa — tombol tetap kelihatan 🔇, tinggal klik sekali buat mulai lagi.
   if (wantsToPlay) {
     audio.play().then(() => {
       isPlaying = true;
       updateBtn();
     }).catch(() => {
-      const resume = () => {
-        playMusic();
-        document.removeEventListener('click', resume);
-        document.removeEventListener('touchend', resume);
-      };
-      document.addEventListener('click', resume, { once: true });
-      document.addEventListener('touchend', resume, { once: true });
+      // biarin isPlaying tetap false; klik tombol yang udah ada handler-nya sendiri
     });
   }
 
