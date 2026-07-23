@@ -540,6 +540,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         <span class="nav-icon">🏍️</span> Seberapa ANPC
       </div>
       <div class="sidebar-section">Info</div>
+      <div class="nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
+        <span class="nav-icon">🎗️</span> Struktur Pengurus
+      </div>
       <div class="nav-item" onclick="window.open('index.html','_blank')">
         <span class="nav-icon">🌐</span> Website ANPC
       </div>
@@ -557,6 +560,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       </div>
       <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="bottom-nav-icon">🏍️</span><span>Mileage</span>
+      </div>
+      <div class="bottom-nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
+        <span class="bottom-nav-icon">🎗️</span><span>Pengurus</span>
       </div>
     </nav>
 
@@ -699,6 +705,18 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
 
         <div id="leaderboardContainer" style="color:var(--grey);font-size:.9rem;padding:3rem 0;">Memuat data...</div>
+      </div>
+
+      <!-- STRUKTUR PENGURUS PAGE -->
+      <div class="page" id="pengurusPage">
+        <div class="page-header">
+          <div class="page-eyebrow">Kenali Kami</div>
+          <h1 class="page-title">STRUKTUR <span class="gold">PENGURUS</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <div class="pengurus-grid" id="pengurusGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:1.2rem; margin-top:1.5rem;">
+          <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Memuat data pengurus...</div>
+        </div>
       </div>
 
     </main>
@@ -925,6 +943,7 @@ function showPage(pageId) {
   document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
   if (pageId === 'eventPage') loadEvents();
   if (pageId === 'leaderPage') loadLeaderboard();
+  if (pageId === 'pengurusPage' && !pengurusLoaded) loadPengurus();
 }
 
 async function saveProfil() {
@@ -1044,6 +1063,7 @@ function getCountdownLabel(tanggalStr, todayStr) {
 
 let leaderboardData = [];
 let myHistoryData = [];
+let pengurusLoaded = false;
 
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboardContainer');
@@ -1239,6 +1259,30 @@ function escapeHtmlP(str) {
   const div = document.createElement('div');
   div.textContent = str || '';
   return div.innerHTML;
+}
+
+async function loadPengurus() {
+  const container = document.getElementById('pengurusGrid');
+  try {
+    const { data, error } = await sb.from('pengurus').select('*').order('urutan', { ascending: true });
+    if (error) throw error;
+    pengurusLoaded = true;
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Data pengurus belum tersedia.</div>';
+      return;
+    }
+    container.innerHTML = data.map(p => `
+      <div style="text-align:center;">
+        <div style="aspect-ratio:1; overflow:hidden; border-radius:50%; background:var(--blk2); border:2px solid rgba(212,175,55,0.25); margin:0 auto 0.8rem; width:75%;">
+          ${p.foto_url ? `<img src="${p.foto_url}" alt="${escapeHtmlP(p.nama)}" style="width:100%;height:100%;object-fit:cover;"/>` : ''}
+        </div>
+        <div style="font-weight:700; font-size:0.92rem; color:var(--white);">${escapeHtmlP(p.nama)}</div>
+        <div style="font-size:0.75rem; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-top:2px;">${escapeHtmlP(p.jabatan)}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Gagal memuat data pengurus.</div>';
+  }
 }
 
 function showToast(msg) {
