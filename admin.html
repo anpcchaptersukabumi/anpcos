@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root { --gold:#D4AF37; --red:#B91C1C; --red-bright:#E11D1D; --black:#060606; --black-2:#0D0D0D; --black-3:#161412; --black-4:#1A1714; --grey:#9A9690; --grey-light:#C9C5BE; }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -209,7 +211,8 @@
 
     <div id="sectionKas" class="hidden">
       <div class="dashboard-grid" id="kasSummaryGrid" style="margin-bottom:1.6rem;"></div>
-      <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:1.6rem;">
+        <button class="btn-outline" onclick="exportKasPDF()">📄 Export PDF</button>
         <button class="btn-outline" onclick="openKasModal()">+ Tambah Transaksi</button>
       </div>
       <div id="kasListContainer"></div>
@@ -378,6 +381,7 @@
     <div class="checklist" id="attendanceChecklist"></div>
     <div class="action-buttons">
       <button class="btn-outline" onclick="closeAttendanceModal()">Tutup</button>
+      <button class="btn-outline" onclick="exportAbsensiPDF()">📄 Export PDF</button>
       <button class="btn-solid" onclick="saveAttendance()">Simpan Kehadiran</button>
     </div>
   </div>
@@ -712,7 +716,7 @@ function renderProfileTabs() {
     <button class="tab-btn ${activeProfileTab === t.key ? 'active' : ''}" onclick="setProfileTab('${t.key}')">
       ${t.label} <span class="count">${counts[t.key]}</span>
     </button>
-  `).join('') + `<button class="btn-outline" style="margin-left:auto;" onclick="loadProfiles()">⟳ Muat Ulang</button>`;
+  `).join('') + `<button class="btn-outline" onclick="exportAnggotaPDF()">📄 Export PDF</button><button class="btn-outline" style="margin-left:auto;" onclick="loadProfiles()">⟳ Muat Ulang</button>`;
 }
 
 function setProfileTab(key) {
@@ -1779,6 +1783,131 @@ async function saveAttendance() {
 
   closeAttendanceModal();
   showToast('Kehadiran berhasil disimpan');
+}
+
+/* ===== EXPORT PDF ===== */
+function exportAnggotaPDF() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let filtered = activeProfileTab === 'all' ? allProfiles : allProfiles.filter(p => p.status === activeProfileTab);
+  if (search) {
+    filtered = filtered.filter(p => (p.nama + (p.whatsapp || '') + (p.domisili || '') + (p.no_anggota || '')).toLowerCase().includes(search));
+  }
+
+  if (filtered.length === 0) {
+    showToast('Tidak ada data untuk di-export');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const tabLabel = { aktif: 'Aktif', locked: 'Terkunci', nonaktif: 'Nonaktif', all: 'Semua' }[activeProfileTab];
+
+  doc.setFontSize(16);
+  doc.text('Data Anggota ANPC Chapter Sukabumi', 14, 18);
+  doc.setFontSize(11);
+  doc.text(`Kategori: ${tabLabel}`, 14, 26);
+  doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 32);
+  doc.text(`Total: ${filtered.length} anggota`, 14, 38);
+
+  const rows = filtered.map((p, i) => [
+    i + 1,
+    p.nama || '-',
+    p.no_anggota || '-',
+    p.whatsapp || '-',
+    p.domisili || '-',
+    p.status === 'aktif' ? 'Aktif' : p.status === 'nonaktif' ? 'Nonaktif' : 'Terkunci',
+  ]);
+
+  doc.autoTable({
+    startY: 44,
+    head: [['No', 'Nama', 'No. Anggota', 'WhatsApp', 'Domisili', 'Status']],
+    body: rows,
+    headStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0] },
+    styles: { fontSize: 9 },
+  });
+
+  doc.save(`Data_Anggota_${tabLabel}.pdf`);
+}
+
+function exportKasPDF() {
+  if (allKas.length === 0) {
+    showToast('Belum ada data transaksi untuk di-export');
+    return;
+  }
+
+  const totalMasuk = allKas.filter(k => k.jenis === 'masuk').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const totalKeluar = allKas.filter(k => k.jenis === 'keluar').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const saldo = totalMasuk - totalKeluar;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text('Laporan Kas ANPC Chapter Sukabumi', 14, 18);
+  doc.setFontSize(11);
+  doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 26);
+  doc.text(`Total Pemasukan: ${formatRupiah(totalMasuk)}`, 14, 34);
+  doc.text(`Total Pengeluaran: ${formatRupiah(totalKeluar)}`, 14, 40);
+  doc.setFont(undefined, 'bold');
+  doc.text(`Saldo Akhir: ${formatRupiah(saldo)}`, 14, 46);
+  doc.setFont(undefined, 'normal');
+
+  const rows = allKas.map((k, i) => [
+    i + 1,
+    new Date(k.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+    k.jenis === 'masuk' ? 'Pemasukan' : 'Pengeluaran',
+    k.keterangan || '-',
+    formatRupiah(k.jumlah),
+  ]);
+
+  doc.autoTable({
+    startY: 52,
+    head: [['No', 'Tanggal', 'Jenis', 'Keterangan', 'Jumlah']],
+    body: rows,
+    headStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0] },
+    styles: { fontSize: 9 },
+  });
+
+  doc.save('Laporan_Kas_ANPC.pdf');
+}
+
+function exportAbsensiPDF() {
+  const eventName = document.getElementById('attendanceEventName').textContent || 'Event';
+  const checklist = document.getElementById('attendanceChecklist');
+  const checkedLabels = Array.from(checklist.querySelectorAll('.checklist-item')).filter(label => {
+    const cb = label.querySelector('input[type="checkbox"]');
+    return cb && cb.checked;
+  });
+
+  if (checkedLabels.length === 0) {
+    showToast('Belum ada member yang dicentang hadir');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text('Daftar Hadir', 14, 18);
+  doc.setFontSize(11);
+  doc.text(`Event: ${eventName}`, 14, 26);
+  doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 32);
+  doc.text(`Total Hadir: ${checkedLabels.length} orang`, 14, 38);
+
+  const rows = checkedLabels.map((label, i) => {
+    const span = label.querySelector('span');
+    const fullText = span ? span.textContent.trim() : '';
+    return [i + 1, fullText];
+  });
+
+  doc.autoTable({
+    startY: 44,
+    head: [['No', 'Nama Member']],
+    body: rows,
+    headStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0] },
+  });
+
+  doc.save(`Absensi_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`);
 }
 
 function escapeHtml(str) {
