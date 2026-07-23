@@ -127,6 +127,7 @@
       <button class="section-btn" id="btnSectionGaleri" onclick="switchSection('galeri')">🖼️ Galeri</button>
       <button class="section-btn" id="btnSectionPengurus" onclick="switchSection('pengurus')">🎗️ Struktur Pengurus</button>
       <button class="section-btn" id="btnSectionGarasi" onclick="switchSection('garasi')">🏠 Data Garasi</button>
+      <button class="section-btn" id="btnSectionBadge" onclick="switchSection('badge')">🏆 Badge Pencapaian</button>
     </div>
 
     <div id="sectionMembers">
@@ -176,6 +177,13 @@
         <button class="btn-outline" onclick="loadGarasiAdmin()">⟳ Muat Ulang</button>
       </div>
       <div id="garasiAdminContainer"></div>
+    </div>
+
+    <div id="sectionBadge" class="hidden">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
+        <button class="btn-outline" onclick="openBadgeModal()">+ Tambah Badge</button>
+      </div>
+      <div id="badgeListContainer"></div>
     </div>
   </main>
 </div>
@@ -281,6 +289,29 @@
     </div>
   </div>
 </div>
+
+<div class="modal-overlay hidden" id="badgeModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="badgeModalTitle">Tambah Badge</h3>
+    <label>Icon (emoji)</label>
+    <input type="text" id="badgeIcon" placeholder="Contoh: 🏆" maxlength="4"/>
+    <label>Nama Badge</label>
+    <input type="text" id="badgeNama" placeholder="Contoh: Kopdar Rookie"/>
+    <label>Deskripsi (opsional)</label>
+    <input type="text" id="badgeDeskripsi" placeholder="Contoh: Member yang mulai aktif ikut kopdar"/>
+    <p style="color:var(--grey); font-size:0.78rem; margin:10px 0 0; line-height:1.5;">💡 Badge diraih kalau <b>kedua syarat</b> di bawah terpenuhi sekaligus. Kalau cuma mau syarat kehadiran aja, isi Syarat Total KM dengan 0 (begitu juga sebaliknya).</p>
+    <label>Syarat Kehadiran (kali ikut event)</label>
+    <input type="number" id="badgeSyaratKehadiran" placeholder="0"/>
+    <label>Syarat Total KM</label>
+    <input type="number" id="badgeSyaratKm" placeholder="0"/>
+    <label>Urutan Tampil (angka kecil tampil duluan)</label>
+    <input type="number" id="badgeUrutan" placeholder="0"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeBadgeModal()">Batal</button>
+      <button class="btn-solid" onclick="saveBadge()" id="saveBadgeBtn">Simpan</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay hidden" id="attendanceModal">
   <div class="modal-box wide">
     <h3>Kehadiran</h3>
@@ -307,6 +338,7 @@ let allKegiatan = [];
 let allGaleri = [];
 let allPengurus = [];
 let allGarasiAdmin = [];
+let allBadges = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -493,6 +525,7 @@ function switchSection(name) {
   document.getElementById('btnSectionGaleri').classList.toggle('active', name === 'galeri');
   document.getElementById('btnSectionPengurus').classList.toggle('active', name === 'pengurus');
   document.getElementById('btnSectionGarasi').classList.toggle('active', name === 'garasi');
+  document.getElementById('btnSectionBadge').classList.toggle('active', name === 'badge');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
   document.getElementById('sectionEvents').classList.toggle('hidden', name !== 'events');
@@ -500,6 +533,7 @@ function switchSection(name) {
   document.getElementById('sectionGaleri').classList.toggle('hidden', name !== 'galeri');
   document.getElementById('sectionPengurus').classList.toggle('hidden', name !== 'pengurus');
   document.getElementById('sectionGarasi').classList.toggle('hidden', name !== 'garasi');
+  document.getElementById('sectionBadge').classList.toggle('hidden', name !== 'badge');
   document.getElementById('searchInput').value = '';
   if (name === 'profiles') {
     if (allProfiles.length === 0) loadProfiles();
@@ -515,6 +549,8 @@ function switchSection(name) {
     loadPengurus();
   } else if (name === 'garasi') {
     loadGarasiAdmin();
+  } else if (name === 'badge') {
+    loadBadges();
   } else {
     renderList();
   }
@@ -1203,6 +1239,113 @@ function renderGarasiAdminList() {
       </div>
     `;
   }).join('');
+}
+
+/* ===== BADGE PENCAPAIAN ===== */
+async function loadBadges() {
+  document.getElementById('badgeListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('badge_tiers').select('*').order('urutan', { ascending: true });
+  if (error) {
+    document.getElementById('badgeListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allBadges = data || [];
+  renderBadgeList();
+}
+
+function renderBadgeList() {
+  const container = document.getElementById('badgeListContainer');
+  if (allBadges.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada badge. Klik "+ Tambah Badge" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = allBadges.map(b => `
+    <div class="member-card">
+      <div style="width:52px; height:52px; flex-shrink:0; border-radius:10px; background:var(--black-4); display:flex; align-items:center; justify-content:center; font-size:1.6rem;">${b.icon || '🏆'}</div>
+      <div style="min-width:220px;flex:1;">
+        <div class="nama">${escapeHtml(b.nama)}</div>
+        <div class="member-meta">
+          <span>📅 Min. ${b.syarat_kehadiran}x kehadiran</span>
+          <span>🏍️ Min. ${Number(b.syarat_km)} km</span>
+        </div>
+        ${b.deskripsi ? `<div class="member-saran">💬 ${escapeHtml(b.deskripsi)}</div>` : ''}
+      </div>
+      <div class="action-row">
+        <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openBadgeModal('${b.id}')" title="Edit">✎</button>
+        <button class="icon-btn delete" onclick="deleteBadge('${b.id}','${escapeHtml(b.nama)}')" title="Hapus">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openBadgeModal(id) {
+  const modal = document.getElementById('badgeModal');
+  modal.dataset.badgeId = id || '';
+  if (id) {
+    const b = allBadges.find(x => x.id === id);
+    document.getElementById('badgeModalTitle').textContent = 'Edit Badge';
+    document.getElementById('badgeIcon').value = b.icon || '';
+    document.getElementById('badgeNama').value = b.nama || '';
+    document.getElementById('badgeDeskripsi').value = b.deskripsi || '';
+    document.getElementById('badgeSyaratKehadiran').value = b.syarat_kehadiran ?? 0;
+    document.getElementById('badgeSyaratKm').value = b.syarat_km ?? 0;
+    document.getElementById('badgeUrutan').value = b.urutan ?? 0;
+  } else {
+    document.getElementById('badgeModalTitle').textContent = 'Tambah Badge';
+    document.getElementById('badgeIcon').value = '';
+    document.getElementById('badgeNama').value = '';
+    document.getElementById('badgeDeskripsi').value = '';
+    document.getElementById('badgeSyaratKehadiran').value = 0;
+    document.getElementById('badgeSyaratKm').value = 0;
+    document.getElementById('badgeUrutan').value = allBadges.length;
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeBadgeModal() {
+  document.getElementById('badgeModal').classList.add('hidden');
+}
+
+async function saveBadge() {
+  const id = document.getElementById('badgeModal').dataset.badgeId;
+  const icon = document.getElementById('badgeIcon').value.trim();
+  const nama = document.getElementById('badgeNama').value.trim();
+  const deskripsi = document.getElementById('badgeDeskripsi').value.trim();
+  const syaratKehadiran = parseInt(document.getElementById('badgeSyaratKehadiran').value) || 0;
+  const syaratKm = parseFloat(document.getElementById('badgeSyaratKm').value) || 0;
+  const urutan = parseInt(document.getElementById('badgeUrutan').value) || 0;
+
+  if (!nama) { showToast('Nama badge wajib diisi'); return; }
+
+  const btn = document.getElementById('saveBadgeBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  const payload = { icon: icon || '🏆', nama, deskripsi, syarat_kehadiran: syaratKehadiran, syarat_km: syaratKm, urutan };
+
+  try {
+    let error;
+    if (id) ({ error } = await supabaseClient.from('badge_tiers').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('badge_tiers').insert(payload));
+    if (error) throw error;
+    closeBadgeModal();
+    showToast(id ? 'Badge berhasil diperbarui' : 'Badge berhasil ditambahkan');
+    loadBadges();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteBadge(id, nama) {
+  if (!confirm(`Hapus badge "${nama}"?`)) return;
+  const { error } = await supabaseClient.from('badge_tiers').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus badge'); return; }
+  allBadges = allBadges.filter(x => x.id !== id);
+  renderBadgeList();
+  showToast(`Badge "${nama}" dihapus`);
 }
 
 async function openAttendanceModal(eventId) {
