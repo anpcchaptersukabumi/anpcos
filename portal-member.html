@@ -420,6 +420,24 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .board-name{font-weight:700;font-size:0.92rem;color:var(--grey-l);white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;}
 .board-sub{font-size:0.72rem;color:var(--grey);margin-top:2px;}
+
+/* KENALAN YUK */
+.kenalan-search{width:100%;max-width:360px;margin-bottom:1.5rem;}
+.kenalan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;}
+.kenalan-card{background:var(--blk3);border:1px solid rgba(212,175,55,0.1);border-radius:14px;
+  padding:1.1rem 0.8rem;text-align:center;transition:border-color 0.2s;}
+.kenalan-card:hover{border-color:rgba(212,175,55,0.35);}
+.kenalan-avatar{width:64px;height:64px;border-radius:50%;margin:0 auto 0.7rem;overflow:hidden;
+  background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;
+  justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:1.3rem;color:var(--blk);}
+.kenalan-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.kenalan-nama{font-weight:700;font-size:0.9rem;color:var(--grey-l);}
+.kenalan-no{font-size:0.7rem;color:var(--gold);margin-top:2px;}
+.kenalan-domisili{font-size:0.72rem;color:var(--grey);margin-top:4px;}
+.kenalan-wa{display:inline-flex;align-items:center;gap:5px;margin-top:0.7rem;font-size:0.72rem;
+  font-weight:700;color:#25D366;text-decoration:none;padding:5px 10px;border:1px solid rgba(37,211,102,0.35);
+  border-radius:999px;transition:background 0.2s;}
+.kenalan-wa:hover{background:rgba(37,211,102,0.12);}
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -539,6 +557,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="nav-icon">🏍️</span> Seberapa ANPC
       </div>
+      <div class="nav-item" data-page="kenalanPage" onclick="showPage('kenalanPage')">
+        <span class="nav-icon">👋</span> Kenalan Yuk
+      </div>
       <div class="sidebar-section">Info</div>
       <div class="nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
         <span class="nav-icon">🎗️</span> Struktur Pengurus
@@ -560,6 +581,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       </div>
       <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="bottom-nav-icon">🏍️</span><span>Mileage</span>
+      </div>
+      <div class="bottom-nav-item" data-page="kenalanPage" onclick="showPage('kenalanPage')">
+        <span class="bottom-nav-icon">👋</span><span>Kenalan</span>
       </div>
       <div class="bottom-nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
         <span class="bottom-nav-icon">🎗️</span><span>Pengurus</span>
@@ -705,6 +729,19 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
 
         <div id="leaderboardContainer" style="color:var(--grey);font-size:.9rem;padding:3rem 0;">Memuat data...</div>
+      </div>
+
+      <!-- KENALAN YUK PAGE -->
+      <div class="page" id="kenalanPage">
+        <div class="page-header">
+          <div class="page-eyebrow">Sesama Member</div>
+          <h1 class="page-title">KENALAN <span class="gold">YUK</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <input type="text" class="f-input kenalan-search" id="kenalanSearch" placeholder="🔍 Cari nama atau domisili..." oninput="renderKenalan()"/>
+        <div class="kenalan-grid" id="kenalanGrid">
+          <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Memuat data member...</div>
+        </div>
       </div>
 
       <!-- STRUKTUR PENGURUS PAGE -->
@@ -944,6 +981,7 @@ function showPage(pageId) {
   if (pageId === 'eventPage') loadEvents();
   if (pageId === 'leaderPage') loadLeaderboard();
   if (pageId === 'pengurusPage' && !pengurusLoaded) loadPengurus();
+  if (pageId === 'kenalanPage' && !kenalanLoaded) loadKenalan();
 }
 
 async function saveProfil() {
@@ -1064,6 +1102,8 @@ function getCountdownLabel(tanggalStr, todayStr) {
 let leaderboardData = [];
 let myHistoryData = [];
 let pengurusLoaded = false;
+let kenalanLoaded = false;
+let allKenalan = [];
 
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboardContainer');
@@ -1283,6 +1323,56 @@ async function loadPengurus() {
   } catch (err) {
     container.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Gagal memuat data pengurus.</div>';
   }
+}
+
+function waLink(nomor) {
+  if (!nomor) return null;
+  let digits = nomor.replace(/[^0-9]/g, '');
+  if (digits.startsWith('0')) digits = '62' + digits.slice(1);
+  else if (!digits.startsWith('62')) digits = '62' + digits;
+  return `https://wa.me/${digits}`;
+}
+
+async function loadKenalan() {
+  const container = document.getElementById('kenalanGrid');
+  try {
+    const { data, error } = await sb.rpc('get_kenalan_yuk');
+    if (error) throw error;
+    kenalanLoaded = true;
+    allKenalan = data || [];
+    renderKenalan();
+  } catch (err) {
+    container.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Gagal memuat data member.</div>';
+  }
+}
+
+function renderKenalan() {
+  const container = document.getElementById('kenalanGrid');
+  const search = (document.getElementById('kenalanSearch')?.value || '').toLowerCase().trim();
+  let filtered = allKenalan;
+  if (search) {
+    filtered = allKenalan.filter(m =>
+      (m.nama || '').toLowerCase().includes(search) ||
+      (m.domisili || '').toLowerCase().includes(search)
+    );
+  }
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;grid-column:1/-1;">Tidak ada member yang cocok.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(m => {
+    const init = (m.nama || '?').charAt(0).toUpperCase();
+    const avatarHtml = m.foto_url ? `<img src="${m.foto_url}" alt=""/>` : init;
+    const wa = waLink(m.whatsapp);
+    return `
+      <div class="kenalan-card">
+        <div class="kenalan-avatar">${avatarHtml}</div>
+        <div class="kenalan-nama">${escapeHtmlP(m.nama || 'Member')}</div>
+        <div class="kenalan-no">${m.no_anggota ? '#' + escapeHtmlP(m.no_anggota) : 'NRA belum ada'}</div>
+        <div class="kenalan-domisili">📍 ${escapeHtmlP(m.domisili || '-')}</div>
+        ${wa ? `<a class="kenalan-wa" href="${wa}" target="_blank">💬 Chat</a>` : ''}
+      </div>`;
+  }).join('');
 }
 
 function showToast(msg) {
