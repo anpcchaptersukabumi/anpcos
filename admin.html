@@ -89,6 +89,14 @@
   .modal-box textarea { border-radius: 8px; }
   .checklist { border-radius: 10px; overflow: hidden; }
   .toast { border-radius: 10px; }
+
+  /* DASHBOARD STATISTIK */
+  .dashboard-intro { color:var(--grey); font-size:0.85rem; margin-bottom:1.6rem; max-width:560px; }
+  .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; }
+  .stat-card { background:var(--black-3); border:1px solid rgba(212,175,55,0.15); border-radius:14px; padding:1.3rem 1.4rem; display:flex; align-items:center; gap:14px; }
+  .stat-icon { font-size:1.8rem; width:52px; height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:rgba(212,175,55,0.08); border-radius:12px; }
+  .stat-value { font-family:'Cinzel',serif; font-weight:700; font-size:1.7rem; color:var(--gold); line-height:1; }
+  .stat-label { font-size:0.74rem; color:var(--grey); margin-top:5px; text-transform:uppercase; letter-spacing:0.5px; }
 </style>
 </head>
 <body>
@@ -120,7 +128,8 @@
   </header>
 <main>
     <div class="section-switch">
-      <button class="section-btn active" id="btnSectionMembers" onclick="switchSection('members')">📋 Pendaftaran Member</button>
+      <button class="section-btn active" id="btnSectionDashboard" onclick="switchSection('dashboard')">🏠 Dashboard</button>
+      <button class="section-btn" id="btnSectionMembers" onclick="switchSection('members')">📋 Pendaftaran Member</button>
       <button class="section-btn" id="btnSectionProfiles" onclick="switchSection('profiles')">🎖️ Anggota Aktif</button>
       <button class="section-btn" id="btnSectionEvents" onclick="switchSection('events')">🏍️ Event & Kopdar</button>
       <button class="section-btn" id="btnSectionKegiatan" onclick="switchSection('kegiatan')">📸 Kegiatan Kami</button>
@@ -130,7 +139,14 @@
       <button class="section-btn" id="btnSectionBadge" onclick="switchSection('badge')">🏆 Badge Pencapaian</button>
     </div>
 
-    <div id="sectionMembers">
+    <div id="sectionDashboard">
+      <p class="dashboard-intro">Ringkasan data komunitas ANPC Chapter Sukabumi secara sekilas.</p>
+      <div class="dashboard-grid" id="dashboardGrid">
+        <div class="loading-state">Memuat statistik...</div>
+      </div>
+    </div>
+
+    <div id="sectionMembers" class="hidden">
       <div class="tabs" id="tabs"></div>
       <div id="listContainer"></div>
     </div>
@@ -330,7 +346,7 @@ let allMembers = [];
 let activeTab = "pending";
 let allProfiles = [];
 let activeProfileTab = "aktif";
-let activeSection = "members";
+let activeSection = "dashboard";
 let allEvents = [];
 let activeEventTab = "mendatang";
 let currentAttendanceEventId = null;
@@ -388,7 +404,7 @@ async function logout() {
 function showDashboard() {
   document.getElementById('loginGate').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
-  loadMembers();
+  loadDashboardStats();
 }
 
 async function initAuthCheck() {
@@ -519,6 +535,7 @@ function onSearchInput() {
 
 function switchSection(name) {
   activeSection = name;
+  document.getElementById('btnSectionDashboard').classList.toggle('active', name === 'dashboard');
   document.getElementById('btnSectionMembers').classList.toggle('active', name === 'members');
   document.getElementById('btnSectionProfiles').classList.toggle('active', name === 'profiles');
   document.getElementById('btnSectionEvents').classList.toggle('active', name === 'events');
@@ -527,6 +544,7 @@ function switchSection(name) {
   document.getElementById('btnSectionPengurus').classList.toggle('active', name === 'pengurus');
   document.getElementById('btnSectionGarasi').classList.toggle('active', name === 'garasi');
   document.getElementById('btnSectionBadge').classList.toggle('active', name === 'badge');
+  document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
   document.getElementById('sectionEvents').classList.toggle('hidden', name !== 'events');
@@ -536,7 +554,12 @@ function switchSection(name) {
   document.getElementById('sectionGarasi').classList.toggle('hidden', name !== 'garasi');
   document.getElementById('sectionBadge').classList.toggle('hidden', name !== 'badge');
   document.getElementById('searchInput').value = '';
-  if (name === 'profiles') {
+  if (name === 'dashboard') {
+    loadDashboardStats();
+  } else if (name === 'members') {
+    if (allMembers.length === 0) loadMembers();
+    else { renderTabs(); renderList(); }
+  } else if (name === 'profiles') {
     if (allProfiles.length === 0) loadProfiles();
     else { renderProfileTabs(); renderProfileList(); }
   } else if (name === 'events') {
@@ -552,8 +575,56 @@ function switchSection(name) {
     loadGarasiAdmin();
   } else if (name === 'badge') {
     loadBadges();
-  } else {
-    renderList();
+  }
+}
+
+async function loadDashboardStats() {
+  const grid = document.getElementById('dashboardGrid');
+  grid.innerHTML = '<div class="loading-state">Memuat statistik...</div>';
+
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [
+      profilesRes, pendingRes, eventsRes, eventsUpcomingRes,
+      kegiatanRes, galeriRes, pengurusRes, garasiRes, badgeRes
+    ] = await Promise.all([
+      supabaseClient.from('profiles').select('role').eq('status', 'aktif'),
+      supabaseClient.from('members').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabaseClient.from('events').select('*', { count: 'exact', head: true }),
+      supabaseClient.from('events').select('*', { count: 'exact', head: true }).gte('tanggal', today),
+      supabaseClient.from('kegiatan_kami').select('*', { count: 'exact', head: true }),
+      supabaseClient.from('galeri').select('*', { count: 'exact', head: true }),
+      supabaseClient.from('pengurus').select('*', { count: 'exact', head: true }),
+      supabaseClient.from('garasi_kendaraan').select('*', { count: 'exact', head: true }),
+      supabaseClient.from('badge_tiers').select('*', { count: 'exact', head: true }),
+    ]);
+
+    const memberAktifCount = (profilesRes.data || []).filter(p => !['admin', 'pengurus'].includes(p.role)).length;
+
+    const stats = [
+      { icon: '🎖️', value: memberAktifCount, label: 'Member Aktif' },
+      { icon: '⏳', value: pendingRes.count || 0, label: 'Pendaftaran Menunggu' },
+      { icon: '🏍️', value: eventsRes.count || 0, label: 'Total Event & Kopdar' },
+      { icon: '📅', value: eventsUpcomingRes.count || 0, label: 'Event Mendatang' },
+      { icon: '📸', value: kegiatanRes.count || 0, label: 'Kegiatan Ditampilkan' },
+      { icon: '🖼️', value: galeriRes.count || 0, label: 'Foto Galeri' },
+      { icon: '🎗️', value: pengurusRes.count || 0, label: 'Struktur Pengurus' },
+      { icon: '🏠', value: garasiRes.count || 0, label: 'Kendaraan Terdaftar' },
+      { icon: '🏆', value: badgeRes.count || 0, label: 'Badge Tersedia' },
+    ];
+
+    grid.innerHTML = stats.map(s => `
+      <div class="stat-card">
+        <div class="stat-icon">${s.icon}</div>
+        <div>
+          <div class="stat-value">${s.value}</div>
+          <div class="stat-label">${s.label}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    grid.innerHTML = `<div class="empty-state">Gagal memuat statistik: ${err.message}</div>`;
   }
 }
 
