@@ -495,8 +495,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .badge-card.earned{border-color:rgba(212,175,55,0.4);background:linear-gradient(160deg,rgba(212,175,55,0.08),var(--blk3));}
 .badge-card.earned:hover{transform:translateY(-3px);}
 .badge-card.locked{opacity:0.55;}
-.badge-icon{font-size:2.2rem;margin-bottom:0.6rem;filter:none;}
-.badge-card.locked .badge-icon{filter:grayscale(1);}
+.badge-icon{width:64px;height:64px;object-fit:contain;margin:0 auto 0.6rem;display:block;filter:none;}
+.badge-icon-fallback{display:flex;align-items:center;justify-content:center;font-size:2.2rem;background:var(--blk4);border-radius:10px;}
+.badge-card.locked .badge-icon{filter:grayscale(1);opacity:0.7;}
 .badge-nama{font-weight:700;font-size:0.88rem;color:var(--grey-l);margin-bottom:4px;}
 .badge-card.earned .badge-nama{color:var(--white);}
 .badge-deskripsi{font-size:0.7rem;color:var(--grey);line-height:1.4;margin-bottom:8px;min-height:1.4em;}
@@ -1707,9 +1708,12 @@ function renderBadges() {
   grid.innerHTML = allBadgesData.map(b => {
     const kmProgress = Number(b.my_km || 0).toFixed(0);
     const kmTarget = Number(b.syarat_km || 0).toFixed(0);
+    const iconHtml = b.icon
+      ? `<img class="badge-icon" src="${b.icon}" alt="${escapeHtmlP(b.nama)}"/>`
+      : `<div class="badge-icon badge-icon-fallback">🏆</div>`;
     return `
       <div class="badge-card ${b.earned ? 'earned' : 'locked'}">
-        <div class="badge-icon">${b.icon || '🏆'}</div>
+        ${iconHtml}
         <div class="badge-nama">${escapeHtmlP(b.nama)}</div>
         <div class="badge-deskripsi">${escapeHtmlP(b.deskripsi || '')}</div>
         <div class="badge-status ${b.earned ? 'earned' : 'locked'}">${b.earned ? '✓ Diraih' : '🔒 Terkunci'}</div>
