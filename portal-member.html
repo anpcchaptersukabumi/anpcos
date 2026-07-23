@@ -507,6 +507,21 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .badge-status.locked{background:var(--blk4);color:var(--grey);border:1px solid rgba(255,255,255,0.08);}
 .badge-progress{font-size:0.6rem;color:var(--grey);margin-top:5px;line-height:1.5;}
 
+/* KAS CHAPTER */
+.kas-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.8rem;}
+.kas-summary-card{background:var(--blk3);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:1.2rem 1.3rem;}
+.kas-summary-icon{font-size:1.5rem;margin-bottom:6px;}
+.kas-summary-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.35rem;color:var(--gold);}
+.kas-summary-label{font-size:0.72rem;color:var(--grey);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
+.kas-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--blk3);
+  border:1px solid rgba(212,175,55,0.1);border-radius:12px;padding:0.9rem 1.1rem;margin-bottom:10px;flex-wrap:wrap;}
+.kas-row-info{flex:1;min-width:180px;}
+.kas-row-keterangan{font-weight:700;font-size:0.88rem;color:var(--grey-l);}
+.kas-row-tanggal{font-size:0.72rem;color:var(--grey);margin-top:3px;}
+.kas-row-jumlah{font-family:'Cinzel',serif;font-weight:700;font-size:1rem;white-space:nowrap;}
+.kas-row-jumlah.masuk{color:#22C55E;}
+.kas-row-jumlah.keluar{color:#F87171;}
+
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -637,6 +652,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         <span class="nav-icon">👋</span> Kenalan Yuk
       </div>
       <div class="sidebar-section">Info</div>
+      <div class="nav-item" data-page="kasPage" onclick="showPage('kasPage')">
+        <span class="nav-icon">💰</span> Kas Chapter
+      </div>
       <div class="nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
         <span class="nav-icon">🎗️</span> Struktur Pengurus
       </div>
@@ -669,6 +687,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       </div>
       <div class="bottom-nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
         <span class="bottom-nav-icon">🎗️</span><span>Pengurus</span>
+      </div>
+      <div class="bottom-nav-item" data-page="kasPage" onclick="showPage('kasPage')">
+        <span class="bottom-nav-icon">💰</span><span>Kas</span>
       </div>
     </nav>
 
@@ -865,6 +886,22 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
         <div class="pengurus-grid" id="pengurusGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:1.2rem; margin-top:1.5rem;">
           <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Memuat data pengurus...</div>
+        </div>
+      </div>
+
+      <!-- KAS CHAPTER PAGE -->
+      <div class="page" id="kasPage">
+        <div class="page-header">
+          <div class="page-eyebrow">Transparansi Keuangan</div>
+          <h1 class="page-title">KAS <span class="gold">CHAPTER</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <p style="color:var(--grey);font-size:0.85rem;max-width:520px;margin-bottom:1.5rem;">Catatan pemasukan & pengeluaran kas ANPC Chapter Sukabumi, terbuka buat semua member.</p>
+        <div class="kas-summary-grid" id="kasSummaryGrid">
+          <div style="color:var(--grey);font-size:.9rem;padding:1rem 0;">Memuat ringkasan...</div>
+        </div>
+        <div id="kasListContainer">
+          <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Memuat riwayat transaksi...</div>
         </div>
       </div>
 
@@ -1127,6 +1164,7 @@ function showPage(pageId) {
   if (pageId === 'kenalanPage' && !kenalanLoaded) loadKenalan();
   if (pageId === 'garasiPage' && !garasiLoaded) loadGarasi();
   if (pageId === 'badgePage' && !badgeLoaded) loadBadgeData();
+  if (pageId === 'kasPage' && !kasLoaded) loadKasData();
 }
 
 async function saveProfil() {
@@ -1253,6 +1291,8 @@ let garasiLoaded = false;
 let allGarasi = [];
 let badgeLoaded = false;
 let allBadgesData = [];
+let kasLoaded = false;
+let allKasData = [];
 
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboardContainer');
@@ -1718,6 +1758,70 @@ function renderBadges() {
         <div class="badge-deskripsi">${escapeHtmlP(b.deskripsi || '')}</div>
         <div class="badge-status ${b.earned ? 'earned' : 'locked'}">${b.earned ? '✓ Diraih' : '🔒 Terkunci'}</div>
         ${!b.earned ? `<div class="badge-progress">${b.my_kehadiran || 0}/${b.syarat_kehadiran} kehadiran · ${kmProgress}/${kmTarget} km</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function formatRupiahP(n) {
+  return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+}
+
+async function loadKasData() {
+  const summaryEl = document.getElementById('kasSummaryGrid');
+  const listEl = document.getElementById('kasListContainer');
+  try {
+    const { data, error } = await sb.from('kas_transaksi').select('*').order('tanggal', { ascending: false });
+    if (error) throw error;
+    kasLoaded = true;
+    allKasData = data || [];
+    renderKas();
+  } catch (err) {
+    summaryEl.innerHTML = '';
+    listEl.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Gagal memuat data kas.</div>';
+  }
+}
+
+function renderKas() {
+  const summaryEl = document.getElementById('kasSummaryGrid');
+  const listEl = document.getElementById('kasListContainer');
+
+  const totalMasuk = allKasData.filter(k => k.jenis === 'masuk').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const totalKeluar = allKasData.filter(k => k.jenis === 'keluar').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const saldo = totalMasuk - totalKeluar;
+
+  summaryEl.innerHTML = `
+    <div class="kas-summary-card">
+      <div class="kas-summary-icon">💰</div>
+      <div class="kas-summary-value">${formatRupiahP(saldo)}</div>
+      <div class="kas-summary-label">Saldo Saat Ini</div>
+    </div>
+    <div class="kas-summary-card">
+      <div class="kas-summary-icon">📥</div>
+      <div class="kas-summary-value" style="color:#22C55E;">${formatRupiahP(totalMasuk)}</div>
+      <div class="kas-summary-label">Total Pemasukan</div>
+    </div>
+    <div class="kas-summary-card">
+      <div class="kas-summary-icon">📤</div>
+      <div class="kas-summary-value" style="color:#F87171;">${formatRupiahP(totalKeluar)}</div>
+      <div class="kas-summary-label">Total Pengeluaran</div>
+    </div>
+  `;
+
+  if (allKasData.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Belum ada catatan transaksi kas.</div>';
+    return;
+  }
+
+  listEl.innerHTML = allKasData.map(k => {
+    const tanggalFmt = new Date(k.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    const isMasuk = k.jenis === 'masuk';
+    return `
+      <div class="kas-row">
+        <div class="kas-row-info">
+          <div class="kas-row-keterangan">${escapeHtmlP(k.keterangan)}</div>
+          <div class="kas-row-tanggal">📅 ${tanggalFmt}</div>
+        </div>
+        <div class="kas-row-jumlah ${isMasuk ? 'masuk' : 'keluar'}">${isMasuk ? '+ ' : '- '}${formatRupiahP(k.jumlah)}</div>
       </div>`;
   }).join('');
 }
