@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>HALLO SUPER ADMIN | ANPC Chapter Sukabumi</title>
+<title>Admin Dashboard | ANPC Chapter Sukabumi</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
@@ -71,12 +71,31 @@
   .checklist-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; }
   .checklist-item:last-child { border-bottom:none; }
   .checklist-item input[type=checkbox] { width:18px; height:18px; accent-color:var(--gold); cursor:pointer; }
+
+  /* ROUNDED CORNERS — kesan lebih premium */
+  .login-box { border-radius: 18px; }
+  .login-box input { border-radius: 10px; }
+  .login-box button { border-radius: 10px; }
+  .btn-outline { border-radius: 10px; }
+  .btn-solid { border-radius: 10px; }
+  .search-wrap input { border-radius: 8px; }
+  .tab-btn { border-radius: 999px; }
+  .section-btn { border-radius: 10px; }
+  .member-card { border-radius: 14px; }
+  .badge { border-radius: 999px; }
+  .icon-btn { border-radius: 8px; }
+  .modal-box { border-radius: 18px; }
+  .modal-box input { border-radius: 8px; }
+  .modal-box textarea { border-radius: 8px; }
+  .checklist { border-radius: 10px; overflow: hidden; }
+  .toast { border-radius: 10px; }
 </style>
 </head>
 <body>
 
 <div id="loginGate">
   <div class="login-box">
+    <img src="logo-emblem.png" alt="ANPC Emblem" style="width:64px; height:64px; object-fit:contain; margin-bottom:0.8rem;"/>
     <h1>Hallo Super Admin</h1>
     <p>ANPC Chapter Sukabumi</p>
     <input type="email" id="adminEmail" placeholder="Email admin" onkeydown="if(event.key==='Enter') document.getElementById('adminPass').focus()"/>
