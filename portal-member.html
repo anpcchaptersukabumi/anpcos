@@ -438,6 +438,51 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   font-weight:700;color:#25D366;text-decoration:none;padding:5px 10px;border:1px solid rgba(37,211,102,0.35);
   border-radius:999px;transition:background 0.2s;}
 .kenalan-wa:hover{background:rgba(37,211,102,0.12);}
+
+/* GARASI KENDARAAN */
+.garasi-header-row{display:flex;justify-content:space-between;align-items:flex-start;
+  flex-wrap:wrap;gap:12px;margin-bottom:1.5rem;}
+.garasi-status-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(34,197,94,0.12);
+  border:1px solid rgba(34,197,94,0.35);color:var(--green);font-weight:700;font-size:0.72rem;
+  letter-spacing:1px;text-transform:uppercase;padding:7px 14px;border-radius:999px;white-space:nowrap;}
+.garasi-status-pill.empty{background:var(--blk3);border-color:rgba(212,175,55,0.15);color:var(--grey);}
+.garasi-add-btn{background:var(--gold);color:var(--blk);border:none;font-weight:700;
+  font-size:0.8rem;letter-spacing:0.5px;padding:10px 18px;border-radius:8px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:opacity 0.2s;}
+.garasi-add-btn:hover{opacity:0.88;}
+.garasi-grid{display:grid;grid-template-columns:1fr;gap:1.2rem;}
+.garasi-card{background:linear-gradient(160deg,var(--blk3),var(--blk2));border:1px solid rgba(212,175,55,0.18);
+  border-radius:16px;padding:1.4rem;display:grid;grid-template-columns:1fr 220px;gap:1.4rem;}
+.garasi-plat-label{font-size:0.68rem;font-weight:700;letter-spacing:2px;color:var(--grey);
+  text-transform:uppercase;margin-bottom:4px;}
+.garasi-plat-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.7rem;color:var(--white);
+  letter-spacing:2px;}
+.garasi-spec-title{font-size:0.68rem;font-weight:700;letter-spacing:1.5px;color:var(--grey);
+  text-transform:uppercase;margin:1.1rem 0 0.6rem;}
+.garasi-spec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.garasi-spec-box{background:var(--blk4);border:1px solid rgba(212,175,55,0.1);border-radius:10px;
+  padding:0.8rem 0.7rem;}
+.garasi-spec-icon{font-size:1.1rem;margin-bottom:4px;}
+.garasi-spec-label{font-size:0.62rem;color:var(--grey);letter-spacing:1px;text-transform:uppercase;}
+.garasi-spec-value{font-weight:700;font-size:0.85rem;color:var(--grey-l);margin-top:2px;}
+.garasi-card-actions{display:flex;gap:8px;margin-top:1.2rem;}
+.garasi-card-actions button{background:var(--blk4);border:1px solid rgba(212,175,55,0.2);
+  color:var(--grey-l);font-size:0.72rem;font-weight:600;padding:7px 12px;border-radius:7px;
+  cursor:pointer;transition:border-color 0.2s;}
+.garasi-card-actions button:hover{border-color:var(--gold);color:var(--gold);}
+.garasi-card-actions button.danger:hover{border-color:var(--red-b);color:var(--red-b);}
+.garasi-photo-wrap{position:relative;border-radius:12px;overflow:hidden;background:var(--blk4);
+  aspect-ratio:4/5;}
+.garasi-photo-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.garasi-photo-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-size:2.4rem;color:rgba(212,175,55,0.25);}
+.garasi-empty{grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--grey);
+  background:var(--blk3);border:1px dashed rgba(212,175,55,0.2);border-radius:14px;}
+@media(max-width:640px){
+  .garasi-card{grid-template-columns:1fr;}
+  .garasi-photo-wrap{aspect-ratio:16/10;order:-1;}
+  .garasi-spec-grid{grid-template-columns:repeat(3,1fr);}
+}
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -452,14 +497,15 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   display:none;position:fixed;left:0;right:0;bottom:0;z-index:95;
   background:var(--blk2);border-top:1px solid rgba(212,175,55,0.15);
   padding:6px 0 calc(6px + env(safe-area-inset-bottom));
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
 }
 .bottom-nav-item{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:2px;color:var(--grey);font-family:'Rajdhani',sans-serif;font-weight:600;
-  font-size:0.68rem;letter-spacing:.3px;cursor:pointer;flex:1;padding:6px 2px;
+  font-size:0.65rem;letter-spacing:.3px;cursor:pointer;flex:1 0 auto;min-width:52px;padding:6px 4px;
 }
 .bottom-nav-item.active{color:var(--gold);}
-.bottom-nav-icon{font-size:1.15rem;}
+.bottom-nav-icon{font-size:1.1rem;}
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -550,6 +596,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="nav-item" data-page="profilPage" onclick="showPage('profilPage')">
         <span class="nav-icon">👤</span> Profil Saya
       </div>
+      <div class="nav-item" data-page="garasiPage" onclick="showPage('garasiPage')">
+        <span class="nav-icon">🏠</span> Garasi Kendaraan
+      </div>
       <div class="sidebar-section">Komunitas</div>
       <div class="nav-item" data-page="eventPage" onclick="showPage('eventPage')">
         <span class="nav-icon">📅</span> Event & Kopdar
@@ -575,6 +624,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       </div>
       <div class="bottom-nav-item" data-page="profilPage" onclick="showPage('profilPage')">
         <span class="bottom-nav-icon">👤</span><span>Profil</span>
+      </div>
+      <div class="bottom-nav-item" data-page="garasiPage" onclick="showPage('garasiPage')">
+        <span class="bottom-nav-icon">🏠</span><span>Garasi</span>
       </div>
       <div class="bottom-nav-item" data-page="eventPage" onclick="showPage('eventPage')">
         <span class="bottom-nav-icon">📅</span><span>Event</span>
@@ -709,6 +761,23 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
       </div>
 
+      <!-- GARASI KENDARAAN PAGE -->
+      <div class="page" id="garasiPage">
+        <div class="page-header">
+          <div class="page-eyebrow">Identitas Kendaraan</div>
+          <h1 class="page-title">GARASI <span class="gold">KENDARAAN</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <p style="color:var(--grey);font-size:0.85rem;max-width:520px;margin-bottom:1.5rem;">Data kendaraan pribadi kamu yang terhubung dengan profil member ANPC Chapter Sukabumi. Cuma kamu yang bisa lihat & kelola data ini.</p>
+        <div class="garasi-header-row">
+          <div class="garasi-status-pill" id="garasiStatusPill">Memuat...</div>
+          <button class="garasi-add-btn" onclick="openGarasiFormModal()">➕ Tambah Kendaraan</button>
+        </div>
+        <div class="garasi-grid" id="garasiGrid">
+          <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;grid-column:1/-1;">Memuat data kendaraan...</div>
+        </div>
+      </div>
+
    <!-- EVENT PAGE -->
       <div class="page" id="eventPage">
         <div class="page-header">
@@ -790,6 +859,37 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
     <div style="margin-top:1.5rem; text-align:right;">
       <button class="modal-action-btn" onclick="closeEventDetail()">Tutup</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="garasiFormModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+      <h3 id="garasiModalTitle" style="font-family:'Cinzel',serif; color:var(--white); font-size:1.2rem;">Tambah Kendaraan</h3>
+      <button class="modal-close-btn" onclick="closeGarasiFormModal()">✕</button>
+    </div>
+    <div class="f-group" style="margin-top:1rem;">
+      <label class="f-label">Foto Motor</label>
+      <input type="file" class="f-input" id="garasiFoto" accept="image/*" onchange="previewGarasiFoto(event)"/>
+      <img id="garasiFotoPreview" class="hidden" style="width:100%; max-height:180px; object-fit:cover; margin-top:8px; border-radius:8px;"/>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Nomor Polisi</label>
+      <input type="text" class="f-input" id="garasiNomorPolisi" placeholder="Contoh: F 2445 TAH"/>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Varian</label>
+      <input type="text" class="f-input" id="garasiVarian" placeholder="Contoh: PCX 160 CBS"/>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Warna</label>
+      <input type="text" class="f-input" id="garasiWarna" placeholder="Contoh: Abu-abu"/>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Tahun</label>
+      <input type="number" class="f-input" id="garasiTahun" placeholder="Contoh: 2024"/>
+    </div>
+    <button class="btn-save" id="saveGarasiBtn" onclick="saveGarasiItem()">Simpan Kendaraan</button>
   </div>
 </div>
 
@@ -982,6 +1082,7 @@ function showPage(pageId) {
   if (pageId === 'leaderPage') loadLeaderboard();
   if (pageId === 'pengurusPage' && !pengurusLoaded) loadPengurus();
   if (pageId === 'kenalanPage' && !kenalanLoaded) loadKenalan();
+  if (pageId === 'garasiPage' && !garasiLoaded) loadGarasi();
 }
 
 async function saveProfil() {
@@ -1104,6 +1205,8 @@ let myHistoryData = [];
 let pengurusLoaded = false;
 let kenalanLoaded = false;
 let allKenalan = [];
+let garasiLoaded = false;
+let allGarasi = [];
 
 async function loadLeaderboard() {
   const container = document.getElementById('leaderboardContainer');
@@ -1373,6 +1476,159 @@ function renderKenalan() {
         ${wa ? `<a class="kenalan-wa" href="${wa}" target="_blank">💬 Chat</a>` : ''}
       </div>`;
   }).join('');
+}
+
+/* ===== GARASI KENDARAAN ===== */
+async function loadGarasi() {
+  const container = document.getElementById('garasiGrid');
+  try {
+    const { data, error } = await sb.from('garasi_kendaraan').select('*').eq('member_id', currentUser.id).order('created_at', { ascending: true });
+    if (error) throw error;
+    garasiLoaded = true;
+    allGarasi = data || [];
+    renderGarasi();
+  } catch (err) {
+    container.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;grid-column:1/-1;">Gagal memuat data kendaraan.</div>';
+  }
+}
+
+function renderGarasi() {
+  const container = document.getElementById('garasiGrid');
+  const pill = document.getElementById('garasiStatusPill');
+
+  if (allGarasi.length === 0) {
+    pill.textContent = '○ Belum Ada Kendaraan';
+    pill.classList.add('empty');
+    container.innerHTML = '<div class="garasi-empty">Kamu belum daftarin kendaraan apapun.<br/>Klik "Tambah Kendaraan" buat mulai.</div>';
+    return;
+  }
+
+  pill.textContent = '✓ Data Garasi Aktif';
+  pill.classList.remove('empty');
+
+  container.innerHTML = allGarasi.map(v => `
+    <div class="garasi-card">
+      <div>
+        <div class="garasi-plat-label">Nomor Polisi</div>
+        <div class="garasi-plat-value">${escapeHtmlP(v.nomor_polisi)}</div>
+        <div class="garasi-spec-title">Spesifikasi Kendaraan</div>
+        <div class="garasi-spec-grid">
+          <div class="garasi-spec-box">
+            <div class="garasi-spec-icon">🏍️</div>
+            <div class="garasi-spec-label">Varian</div>
+            <div class="garasi-spec-value">${v.varian ? escapeHtmlP(v.varian) : '-'}</div>
+          </div>
+          <div class="garasi-spec-box">
+            <div class="garasi-spec-icon">🎨</div>
+            <div class="garasi-spec-label">Warna</div>
+            <div class="garasi-spec-value">${v.warna ? escapeHtmlP(v.warna) : '-'}</div>
+          </div>
+          <div class="garasi-spec-box">
+            <div class="garasi-spec-icon">📅</div>
+            <div class="garasi-spec-label">Tahun</div>
+            <div class="garasi-spec-value">${v.tahun || '-'}</div>
+          </div>
+        </div>
+        <div class="garasi-card-actions">
+          <button onclick="openGarasiFormModal('${v.id}')">✎ Edit</button>
+          <button class="danger" onclick="deleteGarasiItem('${v.id}')">🗑 Hapus</button>
+        </div>
+      </div>
+      <div class="garasi-photo-wrap">
+        ${v.foto_url ? `<img src="${v.foto_url}" alt="${escapeHtmlP(v.nomor_polisi)}"/>` : `<div class="garasi-photo-placeholder">🏍️</div>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+function previewGarasiFoto(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('garasiFotoPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+}
+
+async function uploadGarasiFoto(file) {
+  const ext = file.name.split('.').pop();
+  const filePath = `${currentUser.id}/${Date.now()}.${ext}`;
+  const { error } = await sb.storage.from('garasi-photos').upload(filePath, file);
+  if (error) throw error;
+  const { data } = sb.storage.from('garasi-photos').getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
+function openGarasiFormModal(id) {
+  const modal = document.getElementById('garasiFormModal');
+  modal.dataset.garasiId = id || '';
+  document.getElementById('garasiFoto').value = '';
+  const preview = document.getElementById('garasiFotoPreview');
+  if (id) {
+    const v = allGarasi.find(x => x.id === id);
+    document.getElementById('garasiModalTitle').textContent = 'Edit Kendaraan';
+    document.getElementById('garasiNomorPolisi').value = v.nomor_polisi || '';
+    document.getElementById('garasiVarian').value = v.varian || '';
+    document.getElementById('garasiWarna').value = v.warna || '';
+    document.getElementById('garasiTahun').value = v.tahun || '';
+    if (v.foto_url) { preview.src = v.foto_url; preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  } else {
+    document.getElementById('garasiModalTitle').textContent = 'Tambah Kendaraan';
+    document.getElementById('garasiNomorPolisi').value = '';
+    document.getElementById('garasiVarian').value = '';
+    document.getElementById('garasiWarna').value = '';
+    document.getElementById('garasiTahun').value = '';
+    preview.classList.add('hidden');
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeGarasiFormModal() {
+  document.getElementById('garasiFormModal').classList.add('hidden');
+}
+
+async function saveGarasiItem() {
+  const id = document.getElementById('garasiFormModal').dataset.garasiId;
+  const nomorPolisi = document.getElementById('garasiNomorPolisi').value.trim();
+  const varian = document.getElementById('garasiVarian').value.trim();
+  const warna = document.getElementById('garasiWarna').value.trim();
+  const tahun = parseInt(document.getElementById('garasiTahun').value) || null;
+  const fotoFile = document.getElementById('garasiFoto').files[0];
+
+  if (!nomorPolisi) { showToast('Nomor polisi wajib diisi'); return; }
+  if (fotoFile && fotoFile.size > 2 * 1024 * 1024) { showToast('Ukuran foto maksimal 2MB'); return; }
+
+  const btn = document.getElementById('saveGarasiBtn');
+  btn.disabled = true;
+  btn.textContent = fotoFile ? 'Mengunggah foto...' : 'Menyimpan...';
+
+  const payload = { nomor_polisi: nomorPolisi, varian, warna, tahun, member_id: currentUser.id };
+
+  try {
+    if (fotoFile) payload.foto_url = await uploadGarasiFoto(fotoFile);
+    let error;
+    if (id) ({ error } = await sb.from('garasi_kendaraan').update(payload).eq('id', id));
+    else ({ error } = await sb.from('garasi_kendaraan').insert(payload));
+    if (error) throw error;
+    closeGarasiFormModal();
+    showToast(id ? '✓ Kendaraan berhasil diperbarui' : '✓ Kendaraan berhasil ditambahkan');
+    garasiLoaded = false;
+    loadGarasi();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan Kendaraan';
+  }
+}
+
+async function deleteGarasiItem(id) {
+  if (!confirm('Hapus kendaraan ini dari garasi kamu?')) return;
+  const { error } = await sb.from('garasi_kendaraan').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus kendaraan'); return; }
+  allGarasi = allGarasi.filter(x => x.id !== id);
+  renderGarasi();
+  showToast('Kendaraan dihapus');
 }
 
 function showToast(msg) {
