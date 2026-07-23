@@ -141,6 +141,7 @@
       <button class="section-btn" id="btnSectionGarasi" onclick="switchSection('garasi')">🏠 Data Garasi</button>
       <button class="section-btn" id="btnSectionBadge" onclick="switchSection('badge')">🏆 Badge Pencapaian</button>
       <button class="section-btn" id="btnSectionKas" onclick="switchSection('kas')">💰 Kas & Keuangan</button>
+      <button class="section-btn" id="btnSectionRole" onclick="switchSection('role')">🔑 Role Management</button>
     </div>
 
     <div id="sectionDashboard">
@@ -212,6 +213,14 @@
         <button class="btn-outline" onclick="openKasModal()">+ Tambah Transaksi</button>
       </div>
       <div id="kasListContainer"></div>
+    </div>
+
+    <div id="sectionRole" class="hidden">
+      <p style="color:var(--grey); font-size:0.85rem; margin-bottom:1.4rem; max-width:600px;">Atur siapa yang punya akses sebagai <b>Pengurus</b> atau <b>Admin</b>. Member biasa nggak bisa akses panel admin ini.</p>
+      <div class="search-wrap" style="max-width:360px; margin-bottom:1.6rem;">
+        <input type="text" id="roleSearchInput" style="width:100%;" placeholder="Cari nama atau no. anggota..." oninput="renderRoleList()"/>
+      </div>
+      <div id="roleListContainer"></div>
     </div>
   </main>
 </div>
@@ -390,6 +399,8 @@ let allPengurus = [];
 let allGarasiAdmin = [];
 let allBadges = [];
 let allKas = [];
+let currentAdminId = null;
+let allRoleProfiles = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -427,6 +438,7 @@ async function checkLogin() {
     return;
   }
 
+  currentAdminId = data.user.id;
   showDashboard();
 }
 
@@ -450,6 +462,7 @@ async function initAuthCheck() {
       .eq('id', session.user.id)
       .single();
     if (profile && ['admin', 'pengurus'].includes(profile.role)) {
+      currentAdminId = session.user.id;
       showDashboard();
       return;
     }
@@ -579,6 +592,7 @@ function switchSection(name) {
   document.getElementById('btnSectionGarasi').classList.toggle('active', name === 'garasi');
   document.getElementById('btnSectionBadge').classList.toggle('active', name === 'badge');
   document.getElementById('btnSectionKas').classList.toggle('active', name === 'kas');
+  document.getElementById('btnSectionRole').classList.toggle('active', name === 'role');
   document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
@@ -589,6 +603,7 @@ function switchSection(name) {
   document.getElementById('sectionGarasi').classList.toggle('hidden', name !== 'garasi');
   document.getElementById('sectionBadge').classList.toggle('hidden', name !== 'badge');
   document.getElementById('sectionKas').classList.toggle('hidden', name !== 'kas');
+  document.getElementById('sectionRole').classList.toggle('hidden', name !== 'role');
   document.getElementById('searchInput').value = '';
   if (name === 'dashboard') {
     loadDashboardStats();
@@ -613,6 +628,8 @@ function switchSection(name) {
     loadBadges();
   } else if (name === 'kas') {
     loadKas();
+  } else if (name === 'role') {
+    loadRoleManagement();
   }
 }
 
@@ -1618,6 +1635,82 @@ async function deleteKasItem(id) {
   renderKasSummary();
   renderKasList();
   showToast('Transaksi dihapus');
+}
+
+/* ===== ROLE MANAGEMENT ===== */
+async function loadRoleManagement() {
+  document.getElementById('roleListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('profiles').select('*').order('nama', { ascending: true });
+  if (error) {
+    document.getElementById('roleListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allRoleProfiles = data || [];
+  renderRoleList();
+}
+
+function renderRoleList() {
+  const search = (document.getElementById('roleSearchInput')?.value || '').toLowerCase();
+  let filtered = allRoleProfiles;
+  if (search) {
+    filtered = filtered.filter(p => (p.nama || '').toLowerCase().includes(search) || (p.no_anggota || '').toLowerCase().includes(search));
+  }
+  const container = document.getElementById('roleListContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Tidak ada member yang cocok.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(p => {
+    const role = p.role || 'member';
+    const isSelf = p.id === currentAdminId;
+    const roleBadgeClass = role === 'admin' ? 'badge-approved' : role === 'pengurus' ? 'badge-pending' : '';
+    return `
+      <div class="member-card">
+        <div style="min-width:200px;flex:1;">
+          <div class="nama">${escapeHtml(p.nama || '(Belum lengkap)')}</div>
+          <div class="member-meta">
+            <span>🎖️ ${escapeHtml(p.no_anggota || '-')}</span>
+            ${role !== 'member' ? `<span class="badge ${roleBadgeClass}">${role.toUpperCase()}</span>` : ''}
+          </div>
+        </div>
+        <div class="action-row">
+          ${isSelf
+            ? `<span style="font-size:0.78rem; color:var(--grey); font-style:italic;">Ini akun kamu sendiri</span>`
+            : `<select onchange="changeRole('${p.id}', this.value, '${escapeHtml(p.nama || 'member ini')}')" style="background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:8px 10px; border-radius:8px; font-family:'Rajdhani',sans-serif; font-size:0.85rem; cursor:pointer;">
+                <option value="member" ${role === 'member' ? 'selected' : ''}>Member</option>
+                <option value="pengurus" ${role === 'pengurus' ? 'selected' : ''}>Pengurus</option>
+                <option value="admin" ${role === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>`
+          }
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function changeRole(id, newRole, nama) {
+  const roleInfo = {
+    member: { label: 'Member', desc: 'Member biasa, tanpa akses admin panel.' },
+    pengurus: { label: 'Pengurus', desc: 'Bisa akses admin panel dan kelola data komunitas.' },
+    admin: { label: 'Admin', desc: '⚠️ Akses penuh ke semua data & pengaturan, termasuk kelola role member lain.' },
+  }[newRole];
+
+  if (!confirm(`Ubah role "${nama}" jadi ${roleInfo.label}?\n\n${roleInfo.desc}`)) {
+    renderRoleList();
+    return;
+  }
+
+  const { error } = await supabaseClient.from('profiles').update({ role: newRole }).eq('id', id);
+  if (error) {
+    showToast('Gagal mengubah role: ' + error.message);
+    renderRoleList();
+    return;
+  }
+
+  const p = allRoleProfiles.find(x => x.id === id);
+  if (p) p.role = newRole;
+  showToast(`Role "${nama}" diubah jadi ${roleInfo.label}`);
+  renderRoleList();
 }
 
 async function openAttendanceModal(eventId) {
