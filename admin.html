@@ -107,6 +107,7 @@
       <button class="section-btn" id="btnSectionKegiatan" onclick="switchSection('kegiatan')">📸 Kegiatan Kami</button>
       <button class="section-btn" id="btnSectionGaleri" onclick="switchSection('galeri')">🖼️ Galeri</button>
       <button class="section-btn" id="btnSectionPengurus" onclick="switchSection('pengurus')">🎗️ Struktur Pengurus</button>
+      <button class="section-btn" id="btnSectionGarasi" onclick="switchSection('garasi')">🏠 Data Garasi</button>
     </div>
 
     <div id="sectionMembers">
@@ -146,6 +147,16 @@
         <button class="btn-outline" onclick="openPengurusModal()">+ Tambah Pengurus</button>
       </div>
       <div id="pengurusListContainer" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px;"></div>
+    </div>
+
+    <div id="sectionGarasi" class="hidden">
+      <div style="display:flex; gap:12px; margin-bottom:1.6rem;">
+        <div class="search-wrap" style="flex:1; max-width:360px;">
+          <input type="text" id="garasiSearchInput" style="width:100%;" placeholder="Cari nama, no. anggota, atau plat nomor..." oninput="renderGarasiAdminList()"/>
+        </div>
+        <button class="btn-outline" onclick="loadGarasiAdmin()">⟳ Muat Ulang</button>
+      </div>
+      <div id="garasiAdminContainer"></div>
     </div>
   </main>
 </div>
@@ -276,6 +287,7 @@ let attendanceMemberIds = new Set();
 let allKegiatan = [];
 let allGaleri = [];
 let allPengurus = [];
+let allGarasiAdmin = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -461,12 +473,14 @@ function switchSection(name) {
   document.getElementById('btnSectionKegiatan').classList.toggle('active', name === 'kegiatan');
   document.getElementById('btnSectionGaleri').classList.toggle('active', name === 'galeri');
   document.getElementById('btnSectionPengurus').classList.toggle('active', name === 'pengurus');
+  document.getElementById('btnSectionGarasi').classList.toggle('active', name === 'garasi');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
   document.getElementById('sectionEvents').classList.toggle('hidden', name !== 'events');
   document.getElementById('sectionKegiatan').classList.toggle('hidden', name !== 'kegiatan');
   document.getElementById('sectionGaleri').classList.toggle('hidden', name !== 'galeri');
   document.getElementById('sectionPengurus').classList.toggle('hidden', name !== 'pengurus');
+  document.getElementById('sectionGarasi').classList.toggle('hidden', name !== 'garasi');
   document.getElementById('searchInput').value = '';
   if (name === 'profiles') {
     if (allProfiles.length === 0) loadProfiles();
@@ -480,6 +494,8 @@ function switchSection(name) {
     loadGaleri();
   } else if (name === 'pengurus') {
     loadPengurus();
+  } else if (name === 'garasi') {
+    loadGarasiAdmin();
   } else {
     renderList();
   }
@@ -1109,6 +1125,65 @@ async function deletePengurus(id, nama) {
   allPengurus = allPengurus.filter(x => x.id !== id);
   renderPengurusList();
   showToast(`Pengurus "${nama}" dihapus`);
+}
+
+/* ===== DATA GARASI (read-only, buat keperluan pendataan admin) ===== */
+async function loadGarasiAdmin() {
+  const container = document.getElementById('garasiAdminContainer');
+  container.innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient
+    .from('garasi_kendaraan')
+    .select('*, profiles(nama, no_anggota, whatsapp, domisili)')
+    .order('created_at', { ascending: false });
+  if (error) {
+    container.innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allGarasiAdmin = data || [];
+  renderGarasiAdminList();
+}
+
+function renderGarasiAdminList() {
+  const search = (document.getElementById('garasiSearchInput')?.value || '').toLowerCase();
+  let filtered = allGarasiAdmin;
+  if (search) {
+    filtered = allGarasiAdmin.filter(v => {
+      const p = v.profiles || {};
+      return (
+        (p.nama || '').toLowerCase().includes(search) ||
+        (p.no_anggota || '').toLowerCase().includes(search) ||
+        (v.nomor_polisi || '').toLowerCase().includes(search)
+      );
+    });
+  }
+  const container = document.getElementById('garasiAdminContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Tidak ada data kendaraan yang cocok.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(v => {
+    const p = v.profiles || {};
+    return `
+      <div class="member-card">
+        ${v.foto_url ? `<img src="${v.foto_url}" style="width:64px; height:64px; object-fit:cover; flex-shrink:0; border-radius:10px;"/>` : `<div style="width:64px;height:64px;flex-shrink:0;border-radius:10px;background:var(--black-4);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🏍️</div>`}
+        <div style="min-width:220px;flex:1;">
+          <div class="nama">${escapeHtml(v.nomor_polisi || '-')}</div>
+          <div class="member-meta">
+            ${v.varian ? `<span>🏍️ ${escapeHtml(v.varian)}</span>` : ''}
+            ${v.warna ? `<span>🎨 ${escapeHtml(v.warna)}</span>` : ''}
+            ${v.tahun ? `<span>📅 ${v.tahun}</span>` : ''}
+          </div>
+        </div>
+        <div style="min-width:200px;">
+          <div style="font-weight:600; font-size:0.9rem;">${escapeHtml(p.nama || 'Member tidak diketahui')}</div>
+          <div class="member-meta">
+            <span>🎖️ ${escapeHtml(p.no_anggota || '-')}</span>
+            ${p.whatsapp ? `<span>📱 ${escapeHtml(p.whatsapp)}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 async function openAttendanceModal(eventId) {
