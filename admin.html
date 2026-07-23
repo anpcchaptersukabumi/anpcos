@@ -60,6 +60,8 @@
   .modal-box h3 { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1rem; margin-bottom:8px; }
   .modal-box input { width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; outline:none; }
   .modal-box input:focus { border-color:var(--gold); }
+  .modal-box select { width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; outline:none; cursor:pointer; }
+  .modal-box select:focus { border-color:var(--gold); }
   .modal-box .action-buttons { display:flex; gap:10px; margin-top:16px; }
   .modal-box .action-buttons button { flex:1; }
   .btn-solid { background:linear-gradient(135deg,var(--red-bright),var(--red)); color:#fff; border:none; padding:11px; font-weight:700; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
@@ -86,6 +88,7 @@
   .icon-btn { border-radius: 8px; }
   .modal-box { border-radius: 18px; }
   .modal-box input { border-radius: 8px; }
+  .modal-box select { border-radius: 8px; }
   .modal-box textarea { border-radius: 8px; }
   .checklist { border-radius: 10px; overflow: hidden; }
   .toast { border-radius: 10px; }
@@ -116,7 +119,7 @@
 <div id="dashboard">
   <header>
     <div>
-      <h1>Segalanya tentang ANPC</h1>
+      <h1>Dashboard Admin</h1>
       <div class="sub">ANPC CHAPTER SUKABUMI</div>
     </div>
     <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
@@ -137,6 +140,7 @@
       <button class="section-btn" id="btnSectionPengurus" onclick="switchSection('pengurus')">🎗️ Struktur Pengurus</button>
       <button class="section-btn" id="btnSectionGarasi" onclick="switchSection('garasi')">🏠 Data Garasi</button>
       <button class="section-btn" id="btnSectionBadge" onclick="switchSection('badge')">🏆 Badge Pencapaian</button>
+      <button class="section-btn" id="btnSectionKas" onclick="switchSection('kas')">💰 Kas & Keuangan</button>
     </div>
 
     <div id="sectionDashboard">
@@ -200,6 +204,14 @@
         <button class="btn-outline" onclick="openBadgeModal()">+ Tambah Badge</button>
       </div>
       <div id="badgeListContainer"></div>
+    </div>
+
+    <div id="sectionKas" class="hidden">
+      <div class="dashboard-grid" id="kasSummaryGrid" style="margin-bottom:1.6rem;"></div>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
+        <button class="btn-outline" onclick="openKasModal()">+ Tambah Transaksi</button>
+      </div>
+      <div id="kasListContainer"></div>
     </div>
   </main>
 </div>
@@ -329,6 +341,27 @@
     </div>
   </div>
 </div>
+
+<div class="modal-overlay hidden" id="kasModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="kasModalTitle">Tambah Transaksi</h3>
+    <label>Tanggal</label>
+    <input type="date" id="kasTanggal"/>
+    <label>Jenis Transaksi</label>
+    <select id="kasJenis">
+      <option value="masuk">Pemasukan</option>
+      <option value="keluar">Pengeluaran</option>
+    </select>
+    <label>Keterangan</label>
+    <input type="text" id="kasKeterangan" placeholder="Contoh: Iuran bulanan Juli / Konsumsi kopdar"/>
+    <label>Jumlah (Rp)</label>
+    <input type="number" id="kasJumlah" placeholder="0"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeKasModal()">Batal</button>
+      <button class="btn-solid" onclick="saveKas()" id="saveKasBtn">Simpan</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay hidden" id="attendanceModal">
   <div class="modal-box wide">
     <h3>Kehadiran</h3>
@@ -356,6 +389,7 @@ let allGaleri = [];
 let allPengurus = [];
 let allGarasiAdmin = [];
 let allBadges = [];
+let allKas = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -544,6 +578,7 @@ function switchSection(name) {
   document.getElementById('btnSectionPengurus').classList.toggle('active', name === 'pengurus');
   document.getElementById('btnSectionGarasi').classList.toggle('active', name === 'garasi');
   document.getElementById('btnSectionBadge').classList.toggle('active', name === 'badge');
+  document.getElementById('btnSectionKas').classList.toggle('active', name === 'kas');
   document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
@@ -553,6 +588,7 @@ function switchSection(name) {
   document.getElementById('sectionPengurus').classList.toggle('hidden', name !== 'pengurus');
   document.getElementById('sectionGarasi').classList.toggle('hidden', name !== 'garasi');
   document.getElementById('sectionBadge').classList.toggle('hidden', name !== 'badge');
+  document.getElementById('sectionKas').classList.toggle('hidden', name !== 'kas');
   document.getElementById('searchInput').value = '';
   if (name === 'dashboard') {
     loadDashboardStats();
@@ -575,6 +611,8 @@ function switchSection(name) {
     loadGarasiAdmin();
   } else if (name === 'badge') {
     loadBadges();
+  } else if (name === 'kas') {
+    loadKas();
   }
 }
 
@@ -1440,6 +1478,146 @@ async function deleteBadge(id, nama) {
   allBadges = allBadges.filter(x => x.id !== id);
   renderBadgeList();
   showToast(`Badge "${nama}" dihapus`);
+}
+
+/* ===== KAS & KEUANGAN ===== */
+function formatRupiah(n) {
+  return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+}
+
+async function loadKas() {
+  document.getElementById('kasListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('kas_transaksi').select('*').order('tanggal', { ascending: false });
+  if (error) {
+    document.getElementById('kasListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allKas = data || [];
+  renderKasSummary();
+  renderKasList();
+}
+
+function renderKasSummary() {
+  const totalMasuk = allKas.filter(k => k.jenis === 'masuk').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const totalKeluar = allKas.filter(k => k.jenis === 'keluar').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const saldo = totalMasuk - totalKeluar;
+
+  document.getElementById('kasSummaryGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon">📥</div>
+      <div>
+        <div class="stat-value" style="color:#4ADE80;">${formatRupiah(totalMasuk)}</div>
+        <div class="stat-label">Total Pemasukan</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📤</div>
+      <div>
+        <div class="stat-value" style="color:#F87171;">${formatRupiah(totalKeluar)}</div>
+        <div class="stat-label">Total Pengeluaran</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div>
+        <div class="stat-value">${formatRupiah(saldo)}</div>
+        <div class="stat-label">Saldo Kas Saat Ini</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderKasList() {
+  const container = document.getElementById('kasListContainer');
+  if (allKas.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada transaksi kas. Klik "+ Tambah Transaksi" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = allKas.map(k => {
+    const tanggalFmt = new Date(k.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    const isMasuk = k.jenis === 'masuk';
+    return `
+      <div class="member-card">
+        <div style="min-width:220px;flex:1;">
+          <div class="nama">${escapeHtml(k.keterangan)}</div>
+          <div class="member-meta">
+            <span>📅 ${tanggalFmt}</span>
+            <span style="color:${isMasuk ? '#4ADE80' : '#F87171'}; font-weight:700;">${isMasuk ? '+ ' : '- '}${formatRupiah(k.jumlah)}</span>
+          </div>
+        </div>
+        <div class="action-row">
+          <span class="badge ${isMasuk ? 'badge-approved' : 'badge-rejected'}">${isMasuk ? 'Pemasukan' : 'Pengeluaran'}</span>
+          <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openKasModal('${k.id}')" title="Edit">✎</button>
+          <button class="icon-btn delete" onclick="deleteKasItem('${k.id}')" title="Hapus">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openKasModal(id) {
+  const modal = document.getElementById('kasModal');
+  modal.dataset.kasId = id || '';
+  if (id) {
+    const k = allKas.find(x => x.id === id);
+    document.getElementById('kasModalTitle').textContent = 'Edit Transaksi';
+    document.getElementById('kasTanggal').value = k.tanggal;
+    document.getElementById('kasJenis').value = k.jenis;
+    document.getElementById('kasKeterangan').value = k.keterangan || '';
+    document.getElementById('kasJumlah').value = k.jumlah;
+  } else {
+    document.getElementById('kasModalTitle').textContent = 'Tambah Transaksi';
+    document.getElementById('kasTanggal').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('kasJenis').value = 'masuk';
+    document.getElementById('kasKeterangan').value = '';
+    document.getElementById('kasJumlah').value = '';
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeKasModal() {
+  document.getElementById('kasModal').classList.add('hidden');
+}
+
+async function saveKas() {
+  const id = document.getElementById('kasModal').dataset.kasId;
+  const tanggal = document.getElementById('kasTanggal').value;
+  const jenis = document.getElementById('kasJenis').value;
+  const keterangan = document.getElementById('kasKeterangan').value.trim();
+  const jumlah = parseFloat(document.getElementById('kasJumlah').value) || 0;
+
+  if (!tanggal || !keterangan || jumlah <= 0) { showToast('Tanggal, keterangan, dan jumlah wajib diisi'); return; }
+
+  const btn = document.getElementById('saveKasBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  const payload = { tanggal, jenis, keterangan, jumlah };
+
+  try {
+    let error;
+    if (id) ({ error } = await supabaseClient.from('kas_transaksi').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('kas_transaksi').insert(payload));
+    if (error) throw error;
+    closeKasModal();
+    showToast(id ? 'Transaksi berhasil diperbarui' : 'Transaksi berhasil ditambahkan');
+    loadKas();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteKasItem(id) {
+  if (!confirm('Hapus transaksi ini?')) return;
+  const { error } = await supabaseClient.from('kas_transaksi').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus transaksi'); return; }
+  allKas = allKas.filter(x => x.id !== id);
+  renderKasSummary();
+  renderKasList();
+  showToast('Transaksi dihapus');
 }
 
 async function openAttendanceModal(eventId) {
