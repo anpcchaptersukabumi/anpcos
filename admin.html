@@ -242,6 +242,19 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="editEmailModal">
+  <div class="modal-box">
+    <h3>Edit Email</h3>
+    <p id="editEmailName" style="color:var(--grey); margin-bottom:12px; font-size:0.9rem;"></p>
+    <input type="email" id="editEmailInput" placeholder="Contoh: nama@gmail.com"/>
+    <p style="color:var(--grey); font-size:0.78rem; margin-top:8px; line-height:1.5;">💡 Pastikan email ini sama persis dengan yang dipakai member buat bikin akun portal.</p>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeEditEmailModal()">Batal</button>
+      <button class="btn-solid" onclick="saveEmail()">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="eventModal">
   <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
     <h3 id="eventModalTitle">Tambah Event</h3>
@@ -544,6 +557,10 @@ function renderList() {
             ${m.domisili ? `<span>📍 ${escapeHtml(m.domisili)}</span>` : ''}
             <span>📅 ${date}</span>
           </div>
+          <div class="member-meta" style="margin-top:4px;">
+            <span>📧 ${m.email ? escapeHtml(m.email) : '<span style="color:var(--red-bright);">Email kosong!</span>'}</span>
+            <button class="icon-btn" style="width:22px; height:22px; font-size:0.7rem; border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openEditEmailModal('${m.id}','${escapeHtml(m.email || '')}','${escapeHtml(m.nama)}')" title="Edit Email">✎</button>
+          </div>
           <div class="member-tahun">${escapeHtml(m.tahun_pcx)}</div>
           ${m.tahun_gabung ? `<div class="member-gabung">🗓️ Gabung ANPC sejak: <strong style="color:var(--gold)">${escapeHtml(m.tahun_gabung)}</strong></div>` : ''}
           ${m.kritik_saran ? `<div class="member-saran">💬 "${escapeHtml(m.kritik_saran)}"</div>` : ''}
@@ -782,6 +799,30 @@ async function saveNoAnggota() {
   closeEditNoModal();
   renderProfileList();
   showToast('No. anggota berhasil diperbarui');
+}
+
+function openEditEmailModal(id, currentEmail, nama) {
+  document.getElementById('editEmailModal').dataset.memberId = id;
+  document.getElementById('editEmailName').textContent = nama || '(Belum lengkap)';
+  document.getElementById('editEmailInput').value = currentEmail || '';
+  document.getElementById('editEmailModal').classList.remove('hidden');
+}
+
+function closeEditEmailModal() {
+  document.getElementById('editEmailModal').classList.add('hidden');
+}
+
+async function saveEmail() {
+  const id = document.getElementById('editEmailModal').dataset.memberId;
+  const newEmail = document.getElementById('editEmailInput').value.trim();
+  if (!newEmail || !newEmail.includes('@')) { showToast('Masukkan email yang valid'); return; }
+  const { error } = await supabaseClient.from('members').update({ email: newEmail }).eq('id', id);
+  if (error) { showToast('Gagal menyimpan: ' + error.message); return; }
+  const m = allMembers.find(x => x.id === id);
+  if (m) m.email = newEmail;
+  closeEditEmailModal();
+  renderList();
+  showToast('Email berhasil diperbarui');
 }
 
 async function loadEvents() {
