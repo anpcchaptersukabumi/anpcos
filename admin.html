@@ -9,6 +9,7 @@
 <script src="supabase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root { --gold:#D4AF37; --red:#B91C1C; --red-bright:#E11D1D; --black:#060606; --black-2:#0D0D0D; --black-3:#161412; --black-4:#1A1714; --grey:#9A9690; --grey-light:#C9C5BE; }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -213,6 +214,7 @@
       <div class="dashboard-grid" id="kasSummaryGrid" style="margin-bottom:1.6rem;"></div>
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:1.6rem;">
         <button class="btn-outline" onclick="exportKasPDF()">📄 Export PDF</button>
+        <button class="btn-outline" onclick="exportKasExcel()">📊 Export Excel</button>
         <button class="btn-outline" onclick="openKasModal()">+ Tambah Transaksi</button>
       </div>
       <div id="kasListContainer"></div>
@@ -395,6 +397,7 @@
     <div class="action-buttons">
       <button class="btn-outline" onclick="closeAttendanceModal()">Tutup</button>
       <button class="btn-outline" onclick="exportAbsensiPDF()">📄 Export PDF</button>
+      <button class="btn-outline" onclick="exportAbsensiExcel()">📊 Export Excel</button>
       <button class="btn-solid" onclick="saveAttendance()">Simpan Kehadiran</button>
     </div>
   </div>
@@ -733,7 +736,7 @@ function renderProfileTabs() {
     <button class="tab-btn ${activeProfileTab === t.key ? 'active' : ''}" onclick="setProfileTab('${t.key}')">
       ${t.label} <span class="count">${counts[t.key]}</span>
     </button>
-  `).join('') + `<button class="btn-outline" onclick="exportAnggotaPDF()">📄 Export PDF</button><button class="btn-outline" style="margin-left:auto;" onclick="loadProfiles()">⟳ Muat Ulang</button>`;
+  `).join('') + `<button class="btn-outline" onclick="exportAnggotaPDF()">📄 Export PDF</button><button class="btn-outline" onclick="exportAnggotaExcel()">📊 Export Excel</button><button class="btn-outline" style="margin-left:auto;" onclick="loadProfiles()">⟳ Muat Ulang</button>`;
 }
 
 function setProfileTab(key) {
@@ -1977,6 +1980,91 @@ function exportAbsensiPDF() {
   });
 
   doc.save(`Absensi_${eventName.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+}
+
+/* ===== EXPORT EXCEL ===== */
+function exportAnggotaExcel() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let filtered = activeProfileTab === 'all' ? allProfiles : allProfiles.filter(p => p.status === activeProfileTab);
+  if (search) {
+    filtered = filtered.filter(p => (p.nama + (p.whatsapp || '') + (p.domisili || '') + (p.no_anggota || '')).toLowerCase().includes(search));
+  }
+
+  if (filtered.length === 0) {
+    showToast('Tidak ada data untuk di-export');
+    return;
+  }
+
+  const tabLabel = { aktif: 'Aktif', locked: 'Terkunci', nonaktif: 'Nonaktif', all: 'Semua' }[activeProfileTab];
+
+  const rows = filtered.map((p, i) => ({
+    'No': i + 1,
+    'Nama': p.nama || '-',
+    'No. Anggota': p.no_anggota || '-',
+    'WhatsApp': p.whatsapp || '-',
+    'Domisili': p.domisili || '-',
+    'Status': p.status === 'aktif' ? 'Aktif' : p.status === 'nonaktif' ? 'Nonaktif' : 'Terkunci',
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{ wch: 5 }, { wch: 25 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 12 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data Anggota');
+  XLSX.writeFile(wb, `Data_Anggota_${tabLabel}.xlsx`);
+}
+
+function exportKasExcel() {
+  if (allKas.length === 0) {
+    showToast('Belum ada data transaksi untuk di-export');
+    return;
+  }
+
+  const totalMasuk = allKas.filter(k => k.jenis === 'masuk').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const totalKeluar = allKas.filter(k => k.jenis === 'keluar').reduce((sum, k) => sum + Number(k.jumlah), 0);
+  const saldo = totalMasuk - totalKeluar;
+
+  const rows = allKas.map((k, i) => ({
+    'No': i + 1,
+    'Tanggal': new Date(k.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+    'Jenis': k.jenis === 'masuk' ? 'Pemasukan' : 'Pengeluaran',
+    'Keterangan': k.keterangan || '-',
+    'Jumlah (Rp)': Number(k.jumlah),
+  }));
+  rows.push({ 'No': '', 'Tanggal': '', 'Jenis': '', 'Keterangan': 'TOTAL PEMASUKAN', 'Jumlah (Rp)': totalMasuk });
+  rows.push({ 'No': '', 'Tanggal': '', 'Jenis': '', 'Keterangan': 'TOTAL PENGELUARAN', 'Jumlah (Rp)': totalKeluar });
+  rows.push({ 'No': '', 'Tanggal': '', 'Jenis': '', 'Keterangan': 'SALDO AKHIR', 'Jumlah (Rp)': saldo });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{ wch: 5 }, { wch: 14 }, { wch: 14 }, { wch: 30 }, { wch: 16 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Laporan Kas');
+  XLSX.writeFile(wb, 'Laporan_Kas_ANPC.xlsx');
+}
+
+function exportAbsensiExcel() {
+  const eventName = document.getElementById('attendanceEventName').textContent || 'Event';
+  const checklist = document.getElementById('attendanceChecklist');
+  const checkedLabels = Array.from(checklist.querySelectorAll('.checklist-item')).filter(label => {
+    const cb = label.querySelector('input[type="checkbox"]');
+    return cb && cb.checked;
+  });
+
+  if (checkedLabels.length === 0) {
+    showToast('Belum ada member yang dicentang hadir');
+    return;
+  }
+
+  const rows = checkedLabels.map((label, i) => {
+    const span = label.querySelector('span');
+    const fullText = span ? span.textContent.trim() : '';
+    return { 'No': i + 1, 'Nama Member': fullText };
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{ wch: 5 }, { wch: 35 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Absensi');
+  XLSX.writeFile(wb, `Absensi_${eventName.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
 }
 
 function escapeHtml(str) {
