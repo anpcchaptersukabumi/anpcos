@@ -992,7 +992,10 @@ function renderEventsList() {
           ${e.deskripsi ? `<div class="member-saran">💬 ${escapeHtml(e.deskripsi)}</div>` : ''}
         </div>
         <div class="action-row">
-          <button class="btn-outline" onclick="openAttendanceModal('${e.id}')">Kelola Kehadiran</button>
+          ${e.tanggal <= today
+            ? `<button class="btn-outline" onclick="openAttendanceModal('${e.id}')">Kelola Kehadiran</button>`
+            : `<button class="btn-outline" disabled style="opacity:0.4; cursor:not-allowed;" title="Kehadiran baru bisa dicatat setelah tanggal event (${tanggalFmt})">🔒 Kelola Kehadiran</button>`
+          }
           <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openEventModal('${e.id}')" title="Edit">✎</button>
           <button class="icon-btn delete" onclick="deleteEvent('${e.id}','${escapeHtml(e.nama)}')" title="Hapus">🗑</button>
         </div>
@@ -2056,6 +2059,11 @@ async function deleteArsip(id, judul) {
 async function openAttendanceModal(eventId) {
   currentAttendanceEventId = eventId;
   const e = allEvents.find(x => x.id === eventId);
+  const today = new Date().toISOString().slice(0, 10);
+  if (e && e.tanggal > today) {
+    showToast('Kehadiran baru bisa dicatat setelah event berlangsung');
+    return;
+  }
   document.getElementById('attendanceEventName').textContent = e ? e.nama : '';
   document.getElementById('attendanceChecklist').innerHTML = '<div class="loading-state">Memuat data...</div>';
   document.getElementById('attendanceModal').classList.remove('hidden');
