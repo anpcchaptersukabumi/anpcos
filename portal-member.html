@@ -147,54 +147,55 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 /* KTA CARD */
 .kta-wrap{display:flex;gap:2.5rem;align-items:flex-start;flex-wrap:wrap;}
 .kta-card{
-  width:100%;max-width:900px;flex-shrink:0;
+  width:100%;max-width:560px;flex-shrink:0;
   aspect-ratio:1600/1016;
   background-image:url('kta-template-bg.jpg');
   background-size:100% 100%;
   background-repeat:no-repeat;
-  border-radius:16px;
+  border-radius:14px;
   position:relative;
   overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,0.5);
-  container-type:inline-size;
 }
 .kta-photo-frame{
   position:absolute;left:8.6%;top:27.4%;width:19.8%;height:45.1%;
+  border-radius:10px;
   overflow:hidden;
   display:flex;align-items:center;justify-content:center;
   font-family:'Cinzel',serif;font-weight:700;color:rgba(255,255,255,0.55);
-  font-size:6cqw;
+  font-size:1.8rem;
 }
 .kta-value-id{
   position:absolute;left:38.1%;top:36.8%;right:5%;
   font-family:'Rajdhani',sans-serif;font-weight:700;color:#D4AF37;
-  font-size:3.6cqw;letter-spacing:0.5px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:1.2rem;letter-spacing:0.5px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .kta-value-nama{
   position:absolute;left:38.1%;top:49%;right:5%;
   font-family:'Rajdhani',sans-serif;font-weight:700;color:#fff;
-  font-size:3.6cqw;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:1.2rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .kta-value-domisili{
   position:absolute;left:38.1%;top:65%;right:5%;
   font-family:'Rajdhani',sans-serif;font-weight:700;color:#4ADE80;
-  font-size:3.2cqw;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:1.05rem;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .kta-verified-text{
-  position:absolute;left:7%;top:96.4%;transform:translateY(-50%);
+  position:absolute;left:7%;top:96.4%;right:32%;transform:translateY(-50%);
   font-family:'Rajdhani',sans-serif;font-weight:700;color:#166534;
-  font-size:2cqw;white-space:nowrap;
+  font-size:0.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .kta-plat-text{
   position:absolute;right:4.5%;top:96.4%;transform:translateY(-50%);
   font-family:'Rajdhani',sans-serif;font-weight:800;color:#C2410C;
-  font-size:2.2cqw;white-space:nowrap;
+  font-size:0.78rem;white-space:nowrap;
 }
-@media(max-width:480px){
-  .kta-value-id,.kta-value-nama{font-size:4.4cqw;}
-  .kta-value-domisili{font-size:3.8cqw;}
-  .kta-verified-text{font-size:2.4cqw;}
-  .kta-plat-text{font-size:2.6cqw;}
+@media(max-width:400px){
+  .kta-photo-frame{font-size:1.3rem;}
+  .kta-value-id,.kta-value-nama{font-size:0.95rem;}
+  .kta-value-domisili{font-size:0.82rem;}
+  .kta-verified-text{font-size:0.56rem;}
+  .kta-plat-text{font-size:0.64rem;}
 }
 
 /* KTA Actions */
