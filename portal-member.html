@@ -208,6 +208,19 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 
 /* KTA Actions */
 .kta-actions{flex:1;min-width:240px;}
+
+/* KTA BADGE PREVIEW */
+.kta-badge-preview{background:var(--blk3);border:1px solid rgba(212,175,55,0.12);border-radius:14px;
+  padding:1.4rem 1.6rem;margin-top:1.4rem;max-width:900px;}
+.kta-badge-preview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.kta-badge-preview-header h3{font-family:'Cinzel',serif;font-weight:700;color:var(--white);font-size:1rem;margin:0;}
+.kta-badge-preview-grid{display:flex;gap:1.1rem;flex-wrap:wrap;}
+.kta-badge-preview-item{text-align:center;width:74px;}
+.kta-badge-preview-item img{width:56px;height:56px;object-fit:contain;margin:0 auto 5px;display:block;}
+.kta-badge-preview-fallback{width:56px;height:56px;display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;background:var(--blk4);border-radius:10px;margin:0 auto 5px;}
+.kta-badge-preview-name{font-size:0.62rem;color:var(--grey-l);line-height:1.3;}
+
 .kta-actions h3{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.75rem;
   letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:1rem;}
 .kta-action-btn{
@@ -826,6 +839,16 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
             </button>
           </div>
         </div>
+
+        <div class="kta-badge-preview" id="ktaBadgePreview">
+          <div class="kta-badge-preview-header">
+            <h3>🏆 Badge Pencapaian</h3>
+            <a href="#" onclick="showPage('badgePage')" style="color:var(--gold); font-size:0.78rem; font-weight:600; text-decoration:none;">Lihat Semua →</a>
+          </div>
+          <div class="kta-badge-preview-grid" id="ktaBadgePreviewGrid">
+            <div style="color:var(--grey); font-size:.85rem;">Memuat badge...</div>
+          </div>
+        </div>
       </div>
 
       <!-- PROFIL PAGE -->
@@ -1206,6 +1229,7 @@ async function loadDash() {
   const { data: prof } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
   currentProfile = prof;
   renderDash();
+  loadBadgeData();
 }
 
 function renderDash() {
@@ -1905,10 +1929,31 @@ async function loadBadgeData() {
     badgeLoaded = true;
     allBadgesData = data || [];
     renderBadges();
+    renderBadgePreview();
   } catch (err) {
     grid.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;grid-column:1/-1;">Gagal memuat data badge.</div>';
     summary.textContent = '';
   }
+}
+
+function renderBadgePreview() {
+  const container = document.getElementById('ktaBadgePreviewGrid');
+  if (!container) return;
+  const earned = allBadgesData.filter(b => b.earned);
+  if (earned.length === 0) {
+    container.innerHTML = '<div style="color:var(--grey); font-size:.82rem; line-height:1.6;">Belum ada badge yang diraih. Yuk aktif ikutan kegiatan ANPC buat mulai ngumpulin badge! 🏍️</div>';
+    return;
+  }
+  container.innerHTML = earned.map(b => {
+    const iconHtml = b.icon
+      ? `<img src="${b.icon}" alt="${escapeHtmlP(b.nama)}"/>`
+      : `<div class="kta-badge-preview-fallback">🏆</div>`;
+    return `
+      <div class="kta-badge-preview-item" title="${escapeHtmlP(b.nama)}">
+        ${iconHtml}
+        <div class="kta-badge-preview-name">${escapeHtmlP(b.nama)}</div>
+      </div>`;
+  }).join('');
 }
 
 function renderBadges() {
