@@ -146,6 +146,7 @@
       <button class="section-btn" id="btnSectionKas" onclick="switchSection('kas')">💰 Kas & Keuangan</button>
       <button class="section-btn" id="btnSectionRole" onclick="switchSection('role')">🔑 Role Management</button>
       <button class="section-btn" id="btnSectionBroadcast" onclick="switchSection('broadcast')">📢 Broadcast WA</button>
+      <button class="section-btn" id="btnSectionArsip" onclick="switchSection('arsip')">📁 Dokumen & Arsip</button>
     </div>
 
     <div id="sectionDashboard">
@@ -245,6 +246,24 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
         <button class="btn-outline" onclick="loadBroadcastMembers()">⟳ Muat Ulang</button>
       </div>
       <div id="broadcastListContainer"></div>
+    </div>
+
+    <div id="sectionArsip" class="hidden">
+      <div style="display:flex; gap:12px; margin-bottom:1.6rem; align-items:center; flex-wrap:wrap;">
+        <div class="search-wrap" style="flex:1; max-width:360px;">
+          <input type="text" id="arsipSearchInput" style="width:100%;" placeholder="Cari judul dokumen..." oninput="renderArsipList()"/>
+        </div>
+        <select id="arsipKategoriFilter" onchange="renderArsipList()" style="background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:9px 12px; font-family:'Rajdhani',sans-serif; font-size:0.88rem; border-radius:8px;">
+          <option value="">Semua Kategori</option>
+          <option value="AD/ART">AD/ART</option>
+          <option value="SK Kepengurusan">SK Kepengurusan</option>
+          <option value="Notulen Rapat/Musda">Notulen Rapat/Musda</option>
+          <option value="Surat & Formulir">Surat & Formulir</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+        <button class="btn-outline" onclick="openArsipModal()">+ Upload Dokumen</button>
+      </div>
+      <div id="arsipListContainer"></div>
     </div>
   </main>
 </div>
@@ -422,6 +441,31 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="arsipModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="arsipModalTitle">Upload Dokumen</h3>
+    <label>File Dokumen</label>
+    <input type="file" id="arsipFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+    <p id="arsipFileCurrentName" style="color:var(--grey); font-size:0.78rem; margin-top:6px;"></p>
+    <label>Judul Dokumen</label>
+    <input type="text" id="arsipJudul" placeholder="Contoh: AD/ART ANPC Chapter Sukabumi 2026"/>
+    <label>Kategori</label>
+    <select id="arsipKategori" style="width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; border-radius:8px;">
+      <option value="AD/ART">AD/ART</option>
+      <option value="SK Kepengurusan">SK Kepengurusan</option>
+      <option value="Notulen Rapat/Musda">Notulen Rapat/Musda</option>
+      <option value="Surat & Formulir">Surat & Formulir</option>
+      <option value="Lainnya">Lainnya</option>
+    </select>
+    <label>Deskripsi (opsional)</label>
+    <input type="text" id="arsipDeskripsi" placeholder="Keterangan singkat dokumen ini"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeArsipModal()">Batal</button>
+      <button class="btn-solid" onclick="saveArsip()" id="saveArsipBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let allMembers = [];
 let activeTab = "pending";
@@ -441,6 +485,7 @@ let allKas = [];
 let currentAdminId = null;
 let allRoleProfiles = [];
 let allBroadcastMembers = [];
+let allArsip = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -638,6 +683,7 @@ function switchSection(name) {
   document.getElementById('btnSectionKas').classList.toggle('active', name === 'kas');
   document.getElementById('btnSectionRole').classList.toggle('active', name === 'role');
   document.getElementById('btnSectionBroadcast').classList.toggle('active', name === 'broadcast');
+  document.getElementById('btnSectionArsip').classList.toggle('active', name === 'arsip');
   document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
@@ -650,6 +696,7 @@ function switchSection(name) {
   document.getElementById('sectionKas').classList.toggle('hidden', name !== 'kas');
   document.getElementById('sectionRole').classList.toggle('hidden', name !== 'role');
   document.getElementById('sectionBroadcast').classList.toggle('hidden', name !== 'broadcast');
+  document.getElementById('sectionArsip').classList.toggle('hidden', name !== 'arsip');
   document.getElementById('searchInput').value = '';
   if (name === 'dashboard') {
     loadDashboardStats();
@@ -678,6 +725,8 @@ function switchSection(name) {
     loadRoleManagement();
   } else if (name === 'broadcast') {
     loadBroadcastMembers();
+  } else if (name === 'arsip') {
+    loadArsip();
   }
 }
 
@@ -1867,6 +1916,141 @@ function openBroadcastChat(nomor, nama) {
   const link = waLinkAdmin(nomor);
   if (!link) { showToast('Nomor WA tidak valid'); return; }
   window.open(link + '?text=' + encodeURIComponent(personalized), '_blank');
+}
+
+/* ===== DOKUMEN & ARSIP ===== */
+function arsipFileIcon(fileName) {
+  const ext = (fileName || '').split('.').pop().toLowerCase();
+  if (ext === 'pdf') return '📕';
+  if (['doc', 'docx'].includes(ext)) return '📘';
+  if (['jpg', 'jpeg', 'png'].includes(ext)) return '🖼️';
+  return '📄';
+}
+
+async function loadArsip() {
+  document.getElementById('arsipListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('dokumen_arsip').select('*').order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('arsipListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allArsip = data || [];
+  renderArsipList();
+}
+
+function renderArsipList() {
+  const search = (document.getElementById('arsipSearchInput')?.value || '').toLowerCase();
+  const kategoriFilter = document.getElementById('arsipKategoriFilter')?.value || '';
+  let filtered = allArsip;
+  if (kategoriFilter) filtered = filtered.filter(d => d.kategori === kategoriFilter);
+  if (search) filtered = filtered.filter(d => (d.judul || '').toLowerCase().includes(search));
+
+  const container = document.getElementById('arsipListContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada dokumen. Klik "+ Upload Dokumen" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(d => {
+    const tanggalFmt = new Date(d.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `
+      <div class="member-card">
+        <div style="width:48px; height:48px; flex-shrink:0; border-radius:10px; background:var(--black-4); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">${arsipFileIcon(d.file_name)}</div>
+        <div style="min-width:220px;flex:1;">
+          <div class="nama">${escapeHtml(d.judul)}</div>
+          <div class="member-meta">
+            <span>🏷️ ${escapeHtml(d.kategori)}</span>
+            <span>📅 ${tanggalFmt}</span>
+          </div>
+          ${d.deskripsi ? `<div class="member-saran">💬 ${escapeHtml(d.deskripsi)}</div>` : ''}
+        </div>
+        <div class="action-row">
+          <a class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08); text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="${d.file_url}" target="_blank" title="Lihat/Download">⬇</a>
+          <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openArsipModal('${d.id}')" title="Edit">✎</button>
+          <button class="icon-btn delete" onclick="deleteArsip('${d.id}','${escapeHtml(d.judul)}')" title="Hapus">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function uploadArsipFile(file) {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabaseClient.storage.from('dokumen-arsip').upload(fileName, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from('dokumen-arsip').getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
+function openArsipModal(id) {
+  const modal = document.getElementById('arsipModal');
+  modal.dataset.arsipId = id || '';
+  document.getElementById('arsipFile').value = '';
+  const currentNameEl = document.getElementById('arsipFileCurrentName');
+  if (id) {
+    const d = allArsip.find(x => x.id === id);
+    document.getElementById('arsipModalTitle').textContent = 'Edit Dokumen';
+    document.getElementById('arsipJudul').value = d.judul || '';
+    document.getElementById('arsipKategori').value = d.kategori || 'Lainnya';
+    document.getElementById('arsipDeskripsi').value = d.deskripsi || '';
+    currentNameEl.textContent = d.file_name ? `File saat ini: ${d.file_name} (kosongin kalau nggak mau ganti)` : '';
+  } else {
+    document.getElementById('arsipModalTitle').textContent = 'Upload Dokumen';
+    document.getElementById('arsipJudul').value = '';
+    document.getElementById('arsipKategori').value = 'AD/ART';
+    document.getElementById('arsipDeskripsi').value = '';
+    currentNameEl.textContent = '';
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeArsipModal() {
+  document.getElementById('arsipModal').classList.add('hidden');
+}
+
+async function saveArsip() {
+  const id = document.getElementById('arsipModal').dataset.arsipId;
+  const judul = document.getElementById('arsipJudul').value.trim();
+  const kategori = document.getElementById('arsipKategori').value;
+  const deskripsi = document.getElementById('arsipDeskripsi').value.trim();
+  const file = document.getElementById('arsipFile').files[0];
+
+  if (!judul) { showToast('Judul dokumen wajib diisi'); return; }
+  if (!id && !file) { showToast('File dokumen wajib diupload'); return; }
+
+  const btn = document.getElementById('saveArsipBtn');
+  btn.disabled = true;
+  btn.textContent = file ? 'Mengunggah file...' : 'Menyimpan...';
+
+  const payload = { judul, kategori, deskripsi };
+
+  try {
+    if (file) {
+      payload.file_url = await uploadArsipFile(file);
+      payload.file_name = file.name;
+    }
+    let error;
+    if (id) ({ error } = await supabaseClient.from('dokumen_arsip').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('dokumen_arsip').insert(payload));
+    if (error) throw error;
+    closeArsipModal();
+    showToast(id ? 'Dokumen berhasil diperbarui' : 'Dokumen berhasil diupload');
+    loadArsip();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteArsip(id, judul) {
+  if (!confirm(`Hapus dokumen "${judul}"?`)) return;
+  const { error } = await supabaseClient.from('dokumen_arsip').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus dokumen'); return; }
+  allArsip = allArsip.filter(x => x.id !== id);
+  renderArsipList();
+  showToast(`Dokumen "${judul}" dihapus`);
 }
 
 async function openAttendanceModal(eventId) {
