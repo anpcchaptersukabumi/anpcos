@@ -242,6 +242,11 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 
 /* PROFIL FORM */
 .profil-card{background:var(--blk3);border:1px solid rgba(212,175,55,0.1);padding:2rem;max-width:600px;}
+.profil-layout{display:flex;gap:1.4rem;align-items:flex-start;}
+.profil-layout .profil-card{max-width:600px;flex:1;min-width:0;}
+@media(max-width:900px){
+  .profil-layout{flex-direction:column;}
+}
 .btn-save{background:linear-gradient(135deg,var(--red-b),var(--red));color:var(--white);
   border:none;padding:12px 28px;font-family:'Rajdhani',sans-serif;font-weight:700;
   font-size:.85rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;
@@ -830,6 +835,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <h1 class="page-title">PROFIL <span class="gold">MEMBER</span></h1>
           <div class="page-divider"></div>
         </div>
+       <div class="profil-layout">
        <div class="profil-card">
           <div style="display:flex; align-items:center; gap:1.2rem; margin-bottom:1.6rem;">
             <div class="profil-avatar" id="profilAvatar">?</div>
@@ -870,7 +876,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <div class="save-ok" id="saveOk">✓ Profil berhasil disimpan!</div>
         </div>
 
-        <div class="profil-card" style="margin-top:1.4rem;">
+        <div class="profil-card">
           <div style="font-family:'Cinzel',serif; font-weight:700; color:var(--gold); font-size:1rem; margin-bottom:1rem;">🔒 Ganti Password</div>
           <div class="f-group">
             <label class="f-label">Password Baru</label>
@@ -883,6 +889,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <div class="auth-err" id="pPassErr"></div>
           <div class="save-ok" id="pPassOk">✓ Password berhasil diganti!</div>
           <button class="btn-save" id="pPassBtn" onclick="changeMyPassword()">Ganti Password</button>
+        </div>
         </div>
       </div>
 
