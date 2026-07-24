@@ -110,6 +110,13 @@ section { padding: 6rem 3rem; position:relative; }
 .gallery-item img { width:100%; height:100%; object-fit:cover; }
 .gallery-item-overlay { position:absolute; inset:0; background: rgba(6,6,6,0.55); opacity:0; transition: opacity 0.3s; display:flex; align-items:center; justify-content:center; font-size:1.4rem; color: var(--gold); }
 .gallery-item:hover .gallery-item-overlay { opacity:1; }
+.gallery-album { margin-bottom: 2.2rem; }
+.gallery-album:last-child { margin-bottom: 0; }
+.gallery-album-title { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1rem; color: var(--gold);
+  letter-spacing:1px; text-transform:uppercase; margin-bottom:0.9rem; padding-bottom:0.6rem;
+  border-bottom:1px solid rgba(212,175,55,0.15); }
+.gallery-album-title .date { color: var(--grey-light); font-weight:500; text-transform:none;
+  letter-spacing:normal; margin-left:10px; font-size:0.85rem; }
 #registrasi { background: var(--black); position:relative; overflow:hidden; }
 #registrasi::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 700px 500px at 50% 0%, rgba(185,28,28,0.12), transparent 60%); }
 .reg-panel { position:relative; z-index:1; max-width: 800px; margin: 0 auto; background: linear-gradient(160deg, var(--black-3), var(--black-2)); border: 1px solid rgba(212,175,55,0.25); padding: 3rem; }
@@ -281,7 +288,7 @@ footer { background: var(--black-2); border-top: 1px solid rgba(212,175,55,0.12)
       <h2 class="sec-title">GALERI <span class="gold">KEGIATAN</span></h2>
       <div class="sec-line"></div>
     </div>
-    <div class="gallery-grid" id="galleryGrid">
+    <div id="galleryGrid">
       <div class="loading-state" style="text-align:center; padding:2rem; color:var(--grey-light);">Memuat galeri...</div>
     </div>
   </div>
@@ -405,7 +412,7 @@ footer { background: var(--black-2); border-top: 1px solid rgba(212,175,55,0.12)
 
 <button class="music-toggle" id="musicToggle" title="Putar musik" aria-label="Putar/hentikan musik">🔇</button>
 <audio id="bgMusic" loop preload="auto">
-  <source src="background-music.mpeg" type="audio/mpeg">
+  <source src="background-music.mpeg">
 </audio>
 
 <script>
@@ -525,19 +532,54 @@ async function loadKegiatanKami() {
   }
 }
 
-/* ===== Dynamic Galeri ===== */
+/* ===== Dynamic Galeri (dikelompokkin per event) ===== */
 async function loadGaleriPublic() {
   const container = document.getElementById('galleryGrid');
   try {
-    const { data, error } = await supabaseClient.from('galeri').select('*').order('urutan', { ascending: true });
+    const { data, error } = await supabaseClient.from('galeri').select('*, events(nama, tanggal)').order('urutan', { ascending: true });
     if (error) throw error;
     if (!data || data.length === 0) {
       container.innerHTML = '<div class="loading-state">Belum ada foto galeri.</div>';
       return;
     }
-    container.innerHTML = data.map(g => `
+
+    const groups = {};
+    const noEventPhotos = [];
+    data.forEach(g => {
+      if (g.event_id && g.events) {
+        if (!groups[g.event_id]) groups[g.event_id] = { nama: g.events.nama, tanggal: g.events.tanggal, photos: [] };
+        groups[g.event_id].photos.push(g);
+      } else {
+        noEventPhotos.push(g);
+      }
+    });
+
+    const sortedGroups = Object.values(groups).sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+
+    const renderPhotos = (photos) => photos.map(g => `
       <div class="gallery-item"><img src="${g.foto_url}" alt="${escapeHtmlPublic(g.keterangan) || 'ANPC Sukabumi'}" loading="lazy"/><div class="gallery-item-overlay">🔍</div></div>
     `).join('');
+
+    let html = sortedGroups.map(grp => {
+      const tanggalFmt = grp.tanggal ? new Date(grp.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      return `
+        <div class="gallery-album">
+          <div class="gallery-album-title">🏍️ ${escapeHtmlPublic(grp.nama)}${tanggalFmt ? `<span class="date">${tanggalFmt}</span>` : ''}</div>
+          <div class="gallery-grid">${renderPhotos(grp.photos)}</div>
+        </div>
+      `;
+    }).join('');
+
+    if (noEventPhotos.length > 0) {
+      html += `
+        <div class="gallery-album">
+          <div class="gallery-album-title">📷 Foto Lainnya</div>
+          <div class="gallery-grid">${renderPhotos(noEventPhotos)}</div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
   } catch (err) {
     container.innerHTML = '<div class="loading-state">Gagal memuat galeri.</div>';
   }
@@ -553,6 +595,9 @@ loadGaleriPublic();
   if (!audio || !btn) return;
 
   audio.volume = 0.5;
+  audio.addEventListener('error', () => {
+    console.error('Musik gagal dimuat/diputar. Kemungkinan format file bermasalah. Kode error:', audio.error ? audio.error.code : 'unknown');
+  });
   let isPlaying = false;
   const wantsToPlay = localStorage.getItem('anpcMusicPlaying') === 'true';
 
