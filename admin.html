@@ -769,10 +769,38 @@ function renderProfileList() {
         <div class="action-row">
           <span class="badge ${badgeClass}">${badgeLabel}</span>
           <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openEditNoModal('${p.id}')" title="Edit No. Anggota">✎</button>
+          <button class="icon-btn delete" onclick="deleteProfile('${p.id}','${escapeHtml(p.nama || 'member ini')}')" title="Hapus Anggota">🗑</button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+async function deleteProfile(id, nama) {
+  const confirmed = confirm(
+    `Hapus anggota "${nama}" secara permanen?\n\n` +
+    `Ini bakal ngehapus: data profil, kendaraan di Garasi, riwayat kehadiran, dan RSVP event dia.\n\n` +
+    `⚠️ CATATAN: Akun LOGIN member ini (email & password) TIDAK ikut terhapus otomatis ` +
+    `karena keterbatasan sistem. Kalau mau bener-bener nutup akses dia, hapus juga akunnya ` +
+    `manual lewat Supabase Dashboard > Authentication > Users.\n\n` +
+    `Lanjutkan hapus data?`
+  );
+  if (!confirmed) return;
+
+  try {
+    await supabaseClient.from('garasi_kendaraan').delete().eq('member_id', id);
+    await supabaseClient.from('absensi').delete().eq('member_id', id);
+    await supabaseClient.from('event_members').delete().eq('member_id', id);
+    const { error } = await supabaseClient.from('profiles').delete().eq('id', id);
+    if (error) throw error;
+
+    allProfiles = allProfiles.filter(x => x.id !== id);
+    renderProfileTabs();
+    renderProfileList();
+    showToast(`Anggota "${nama}" dihapus`);
+  } catch (err) {
+    showToast('Gagal menghapus: ' + err.message);
+  }
 }
 
 function openEditNoModal(id) {
