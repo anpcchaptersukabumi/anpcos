@@ -558,6 +558,25 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .sertifikat-empty{color:var(--grey);font-size:0.85rem;padding:1.2rem;background:var(--blk3);
   border:1px dashed rgba(212,175,55,0.2);border-radius:12px;text-align:center;}
 
+/* DOKUMEN & ARSIP */
+.arsip-filter-row{display:flex;gap:10px;margin-bottom:1.4rem;flex-wrap:wrap;}
+.arsip-kategori-pill{background:var(--blk3);border:1px solid rgba(212,175,55,0.18);color:var(--grey-l);
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.78rem;padding:7px 14px;border-radius:999px;
+  cursor:pointer;transition:all 0.2s;}
+.arsip-kategori-pill.active{background:var(--gold);color:var(--blk);border-color:var(--gold);}
+.arsip-card{display:flex;align-items:center;gap:14px;background:var(--blk3);
+  border:1px solid rgba(212,175,55,0.12);border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;flex-wrap:wrap;}
+.arsip-icon{width:46px;height:46px;border-radius:10px;background:var(--blk4);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.arsip-info{flex:1;min-width:160px;}
+.arsip-title{font-weight:700;font-size:0.9rem;color:var(--grey-l);}
+.arsip-meta{font-size:0.72rem;color:var(--grey);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;}
+.arsip-desc{font-size:0.76rem;color:var(--grey);margin-top:4px;font-style:italic;}
+.arsip-download-btn{background:var(--gold);color:var(--blk);border:none;font-weight:700;
+  font-size:0.78rem;padding:9px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;
+  text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:opacity 0.2s;}
+.arsip-download-btn:hover{opacity:0.88;}
+
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -739,6 +758,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="nav-item" data-page="sertifikatPage" onclick="showPage('sertifikatPage')">
         <span class="nav-icon">📜</span> Sertifikat
       </div>
+      <div class="nav-item" data-page="arsipPage" onclick="showPage('arsipPage')">
+        <span class="nav-icon">📁</span> Dokumen & Arsip
+      </div>
       <div class="nav-item" data-page="kasPage" onclick="showPage('kasPage')">
         <span class="nav-icon">💰</span> Kas Chapter
       </div>
@@ -785,6 +807,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
         <div class="more-menu-item" data-page="sertifikatPage" onclick="showPage('sertifikatPage'); closeMoreMenu();">
           <span class="more-menu-icon">📜</span> Sertifikat
+        </div>
+        <div class="more-menu-item" data-page="arsipPage" onclick="showPage('arsipPage'); closeMoreMenu();">
+          <span class="more-menu-icon">📁</span> Dokumen & Arsip
         </div>
         <div class="more-menu-item" data-page="kasPage" onclick="showPage('kasPage'); closeMoreMenu();">
           <span class="more-menu-icon">💰</span> Kas Chapter
@@ -1044,6 +1069,20 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <div id="sertifikatEvent">
             <div style="color:var(--grey);font-size:.85rem;">Memuat...</div>
           </div>
+        </div>
+      </div>
+
+      <!-- DOKUMEN & ARSIP PAGE -->
+      <div class="page" id="arsipPage">
+        <div class="page-header">
+          <div class="page-eyebrow">Transparansi Organisasi</div>
+          <h1 class="page-title">DOKUMEN <span class="gold">& ARSIP</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <p style="color:var(--grey);font-size:0.85rem;max-width:520px;margin-bottom:1.4rem;">AD/ART, SK Kepengurusan, notulen rapat, dan dokumen resmi lainnya — terbuka buat semua member.</p>
+        <div class="arsip-filter-row" id="arsipFilterRow"></div>
+        <div id="arsipListPage">
+          <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Memuat dokumen...</div>
         </div>
       </div>
 
@@ -1353,7 +1392,7 @@ function showPage(pageId) {
   document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
-  const morePages = ['profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage', 'sertifikatPage'];
+  const morePages = ['profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage', 'sertifikatPage', 'arsipPage'];
   if (morePages.includes(pageId)) {
     const moreBtn = document.getElementById('moreNavBtn');
     if (moreBtn) moreBtn.classList.add('active');
@@ -1366,6 +1405,7 @@ function showPage(pageId) {
   if (pageId === 'badgePage' && !badgeLoaded) loadBadgeData();
   if (pageId === 'kasPage' && !kasLoaded) loadKasData();
   if (pageId === 'sertifikatPage' && !sertifikatLoaded) loadSertifikatData();
+  if (pageId === 'arsipPage' && !arsipLoaded) loadArsipPage();
 }
 
 function toggleMoreMenu() {
@@ -1542,6 +1582,9 @@ let badgeLoaded = false;
 let allBadgesData = [];
 let kasLoaded = false;
 let sertifikatLoaded = false;
+let arsipLoaded = false;
+let allArsipPage = [];
+let arsipActiveKategori = '';
 let allKasData = [];
 
 async function loadLeaderboard() {
@@ -2278,6 +2321,70 @@ function generateCertificatePDF(opts) {
 
   const namaFile = (currentProfile?.nama || 'member').replace(/\s+/g, '_');
   doc.save(`Sertifikat_${opts.type.replace(/\s+/g, '_')}_${namaFile}.pdf`);
+}
+
+/* ===== DOKUMEN & ARSIP ===== */
+function arsipFileIconP(fileName) {
+  const ext = (fileName || '').split('.').pop().toLowerCase();
+  if (ext === 'pdf') return '📕';
+  if (['doc', 'docx'].includes(ext)) return '📘';
+  if (['jpg', 'jpeg', 'png'].includes(ext)) return '🖼️';
+  return '📄';
+}
+
+async function loadArsipPage() {
+  arsipLoaded = true;
+  const el = document.getElementById('arsipListPage');
+  try {
+    const { data, error } = await sb.from('dokumen_arsip').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    allArsipPage = data || [];
+    renderArsipFilterPills();
+    renderArsipListPage();
+  } catch (err) {
+    el.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Gagal memuat dokumen.</div>';
+  }
+}
+
+function renderArsipFilterPills() {
+  const row = document.getElementById('arsipFilterRow');
+  const kategoris = [...new Set(allArsipPage.map(d => d.kategori))];
+  const pills = ['', ...kategoris];
+  row.innerHTML = pills.map(k => `
+    <div class="arsip-kategori-pill ${arsipActiveKategori === k ? 'active' : ''}" onclick="setArsipKategori('${k}')">${k || 'Semua'}</div>
+  `).join('');
+}
+
+function setArsipKategori(k) {
+  arsipActiveKategori = k;
+  renderArsipFilterPills();
+  renderArsipListPage();
+}
+
+function renderArsipListPage() {
+  const el = document.getElementById('arsipListPage');
+  let filtered = allArsipPage;
+  if (arsipActiveKategori) filtered = filtered.filter(d => d.kategori === arsipActiveKategori);
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Belum ada dokumen di kategori ini.</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(d => {
+    const tanggalFmt = new Date(d.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `
+      <div class="arsip-card">
+        <div class="arsip-icon">${arsipFileIconP(d.file_name)}</div>
+        <div class="arsip-info">
+          <div class="arsip-title">${escapeHtmlP(d.judul)}</div>
+          <div class="arsip-meta"><span>🏷️ ${escapeHtmlP(d.kategori)}</span><span>📅 ${tanggalFmt}</span></div>
+          ${d.deskripsi ? `<div class="arsip-desc">${escapeHtmlP(d.deskripsi)}</div>` : ''}
+        </div>
+        <a class="arsip-download-btn" href="${d.file_url}" target="_blank">⬇ Download</a>
+      </div>
+    `;
+  }).join('');
 }
 
 function showToast(msg) {
