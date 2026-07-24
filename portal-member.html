@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&family=Montserrat:ital,wght@0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --gold:#D4AF37;--gold-l:#F4D87C;--gold-d:#9C7A1E;
@@ -532,6 +533,24 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .kas-row-jumlah.masuk{color:#22C55E;}
 .kas-row-jumlah.keluar{color:#F87171;}
 
+/* SERTIFIKAT */
+.sertifikat-section{margin-bottom:2rem;}
+.sertifikat-section-title{font-family:'Cinzel',serif;font-weight:700;color:var(--gold);
+  font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.sertifikat-card{display:flex;align-items:center;gap:14px;background:var(--blk3);
+  border:1px solid rgba(212,175,55,0.12);border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;flex-wrap:wrap;}
+.sertifikat-icon{width:44px;height:44px;border-radius:10px;background:rgba(212,175,55,0.1);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.sertifikat-info{flex:1;min-width:160px;}
+.sertifikat-title{font-weight:700;font-size:0.9rem;color:var(--grey-l);}
+.sertifikat-sub{font-size:0.74rem;color:var(--grey);margin-top:2px;}
+.sertifikat-btn{background:var(--gold);color:var(--blk);border:none;font-weight:700;
+  font-size:0.78rem;padding:9px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;transition:opacity 0.2s;}
+.sertifikat-btn:hover{opacity:0.88;}
+.sertifikat-empty{color:var(--grey);font-size:0.85rem;padding:1.2rem;background:var(--blk3);
+  border:1px dashed rgba(212,175,55,0.2);border-radius:12px;text-align:center;}
+
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -710,6 +729,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         <span class="nav-icon">👋</span> Kenalan Yuk
       </div>
       <div class="sidebar-section">Info</div>
+      <div class="nav-item" data-page="sertifikatPage" onclick="showPage('sertifikatPage')">
+        <span class="nav-icon">📜</span> Sertifikat
+      </div>
       <div class="nav-item" data-page="kasPage" onclick="showPage('kasPage')">
         <span class="nav-icon">💰</span> Kas Chapter
       </div>
@@ -753,6 +775,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
         <div class="more-menu-item" data-page="pengurusPage" onclick="showPage('pengurusPage'); closeMoreMenu();">
           <span class="more-menu-icon">🎗️</span> Struktur Pengurus
+        </div>
+        <div class="more-menu-item" data-page="sertifikatPage" onclick="showPage('sertifikatPage'); closeMoreMenu();">
+          <span class="more-menu-icon">📜</span> Sertifikat
         </div>
         <div class="more-menu-item" data-page="kasPage" onclick="showPage('kasPage'); closeMoreMenu();">
           <span class="more-menu-icon">💰</span> Kas Chapter
@@ -984,6 +1009,37 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
       </div>
 
+      <!-- SERTIFIKAT PAGE -->
+      <div class="page" id="sertifikatPage">
+        <div class="page-header">
+          <div class="page-eyebrow">Bukti & Apresiasi</div>
+          <h1 class="page-title">SERTIFIKAT <span class="gold">SAYA</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <p style="color:var(--grey);font-size:0.85rem;max-width:520px;margin-bottom:1.8rem;">Download sertifikat kamu kapan aja — keanggotaan, pencapaian badge, sampai partisipasi event.</p>
+
+        <div class="sertifikat-section">
+          <div class="sertifikat-section-title">🪪 Sertifikat Keanggotaan</div>
+          <div id="sertifikatKeanggotaan">
+            <div style="color:var(--grey);font-size:.85rem;">Memuat...</div>
+          </div>
+        </div>
+
+        <div class="sertifikat-section">
+          <div class="sertifikat-section-title">🏆 Sertifikat Pencapaian</div>
+          <div id="sertifikatBadge">
+            <div style="color:var(--grey);font-size:.85rem;">Memuat...</div>
+          </div>
+        </div>
+
+        <div class="sertifikat-section">
+          <div class="sertifikat-section-title">🏍️ Sertifikat Partisipasi Event</div>
+          <div id="sertifikatEvent">
+            <div style="color:var(--grey);font-size:.85rem;">Memuat...</div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -1137,7 +1193,15 @@ async function doRegister() {
     options: { data: { nama: m.nama, whatsapp: m.whatsapp } }
   });
   btn.disabled=false; btn.textContent='Buat Akun';
-  if (error) { err.textContent=error.message; err.style.display='block'; return; }
+  if (error) {
+    let msg = error.message || '';
+    if (!msg || msg === '{}' || msg.trim() === '') {
+      msg = `Terjadi error di server (kode ${error.status || 'tidak diketahui'}). Kemungkinan email ini udah pernah dipake buat daftar sebelumnya tapi gagal di tengah jalan. Coba pake "Lupa Password" di tab Masuk, atau hubungi admin.`;
+    }
+    err.textContent = msg;
+    err.style.display='block';
+    return;
+  }
   ok.textContent='✓ Akun berhasil dibuat! Silakan login sekarang.';
   ok.style.display='block';
   setTimeout(() => switchTab('login'), 2500);
@@ -1282,7 +1346,7 @@ function showPage(pageId) {
   document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
-  const morePages = ['profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage'];
+  const morePages = ['profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage', 'sertifikatPage'];
   if (morePages.includes(pageId)) {
     const moreBtn = document.getElementById('moreNavBtn');
     if (moreBtn) moreBtn.classList.add('active');
@@ -1294,6 +1358,7 @@ function showPage(pageId) {
   if (pageId === 'garasiPage' && !garasiLoaded) loadGarasi();
   if (pageId === 'badgePage' && !badgeLoaded) loadBadgeData();
   if (pageId === 'kasPage' && !kasLoaded) loadKasData();
+  if (pageId === 'sertifikatPage' && !sertifikatLoaded) loadSertifikatData();
 }
 
 function toggleMoreMenu() {
@@ -1469,6 +1534,7 @@ let allGarasi = [];
 let badgeLoaded = false;
 let allBadgesData = [];
 let kasLoaded = false;
+let sertifikatLoaded = false;
 let allKasData = [];
 
 async function loadLeaderboard() {
@@ -2022,6 +2088,189 @@ function renderKas() {
         <div class="kas-row-jumlah ${isMasuk ? 'masuk' : 'keluar'}">${isMasuk ? '+ ' : '- '}${formatRupiahP(k.jumlah)}</div>
       </div>`;
   }).join('');
+}
+
+/* ===== SERTIFIKAT ===== */
+async function loadSertifikatData() {
+  sertifikatLoaded = true;
+  renderSertifikatKeanggotaan();
+
+  if (!badgeLoaded) {
+    await loadBadgeData();
+  }
+  renderSertifikatBadge();
+
+  try {
+    const { data: historyData } = await sb.from('absensi')
+      .select('hadir_at, events(id, nama, tanggal, jarak)')
+      .eq('member_id', currentUser.id)
+      .order('tanggal', { foreignTable: 'events', ascending: false });
+    myHistoryData = historyData || [];
+  } catch (err) {
+    myHistoryData = [];
+  }
+  renderSertifikatEvent();
+}
+
+function renderSertifikatKeanggotaan() {
+  const el = document.getElementById('sertifikatKeanggotaan');
+  const p = currentProfile;
+  if (!p || p.status !== 'aktif') {
+    el.innerHTML = '<div class="sertifikat-empty">Sertifikat keanggotaan cuma tersedia buat member yang statusnya udah Aktif.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="sertifikat-card">
+      <div class="sertifikat-icon">🪪</div>
+      <div class="sertifikat-info">
+        <div class="sertifikat-title">Sertifikat Keanggotaan Resmi</div>
+        <div class="sertifikat-sub">No. Anggota ${escapeHtmlP(p.no_anggota || '-')}</div>
+      </div>
+      <button class="sertifikat-btn" onclick="downloadSertifikatKeanggotaan()">⬇ Download</button>
+    </div>
+  `;
+}
+
+function renderSertifikatBadge() {
+  const el = document.getElementById('sertifikatBadge');
+  const earned = allBadgesData.filter(b => b.earned);
+  if (earned.length === 0) {
+    el.innerHTML = '<div class="sertifikat-empty">Belum ada badge yang diraih. Yuk aktif ikutan kegiatan ANPC buat mulai ngumpulin badge!</div>';
+    return;
+  }
+  el.innerHTML = earned.map((b) => {
+    const idx = allBadgesData.indexOf(b);
+    const iconHtml = b.icon ? `<img src="${b.icon}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;"/>` : '🏆';
+    return `
+    <div class="sertifikat-card">
+      <div class="sertifikat-icon">${iconHtml}</div>
+      <div class="sertifikat-info">
+        <div class="sertifikat-title">${escapeHtmlP(b.nama)}</div>
+        <div class="sertifikat-sub">${escapeHtmlP(b.deskripsi || 'Badge pencapaian ANPC')}</div>
+      </div>
+      <button class="sertifikat-btn" onclick="downloadSertifikatBadge(${idx})">⬇ Download</button>
+    </div>
+  `;
+  }).join('');
+}
+
+function renderSertifikatEvent() {
+  const el = document.getElementById('sertifikatEvent');
+  if (myHistoryData.length === 0) {
+    el.innerHTML = '<div class="sertifikat-empty">Belum ada riwayat event yang diikuti.</div>';
+    return;
+  }
+  el.innerHTML = myHistoryData.map((h, idx) => {
+    const ev = h.events || {};
+    const tanggalFmt = ev.tanggal ? new Date(ev.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }) : '-';
+    return `
+      <div class="sertifikat-card">
+        <div class="sertifikat-icon">🏍️</div>
+        <div class="sertifikat-info">
+          <div class="sertifikat-title">${escapeHtmlP(ev.nama || 'Event')}</div>
+          <div class="sertifikat-sub">${tanggalFmt}</div>
+        </div>
+        <button class="sertifikat-btn" onclick="downloadSertifikatEvent(${idx})">⬇ Download</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function downloadSertifikatKeanggotaan() {
+  const p = currentProfile;
+  const tahun = new Date(p.created_at).getFullYear();
+  generateCertificatePDF({
+    type: 'KEANGGOTAAN',
+    description: `atas keanggotaan resminya sebagai bagian dari keluarga besar\nANPC Chapter Sukabumi dengan Nomor Anggota ${p.no_anggota || '-'}, sejak tahun ${tahun}`,
+  });
+}
+
+function downloadSertifikatBadge(idx) {
+  const b = allBadgesData[idx];
+  if (!b) return;
+  generateCertificatePDF({
+    type: 'PENCAPAIAN',
+    description: `atas pencapaian meraih badge "${b.nama}" dalam program apresiasi\nANPC Chapter Sukabumi berkat dedikasi dan partisipasi aktifnya`,
+  });
+}
+
+function downloadSertifikatEvent(idx) {
+  const h = myHistoryData[idx];
+  if (!h) return;
+  const ev = h.events || {};
+  const tanggalFmt = ev.tanggal ? new Date(ev.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }) : '-';
+  generateCertificatePDF({
+    type: 'PARTISIPASI EVENT',
+    description: `atas partisipasi aktifnya dalam kegiatan "${ev.nama || 'ANPC'}"\nyang diselenggarakan pada ${tanggalFmt}`,
+  });
+}
+
+function generateCertificatePDF(opts) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const w = doc.internal.pageSize.getWidth();
+  const h = doc.internal.pageSize.getHeight();
+  const gold = [212, 175, 55];
+
+  doc.setFillColor(15, 10, 8);
+  doc.rect(0, 0, w, h, 'F');
+
+  doc.setDrawColor(...gold);
+  doc.setLineWidth(1.2);
+  doc.rect(8, 8, w - 16, h - 16);
+  doc.setLineWidth(0.4);
+  doc.rect(11, 11, w - 22, h - 22);
+
+  doc.setTextColor(...gold);
+  doc.setFont('times', 'bolditalic');
+  doc.setFontSize(14);
+  doc.text('ANPC CHAPTER SUKABUMI', w / 2, 28, { align: 'center' });
+  doc.setFont('times', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(190, 190, 190);
+  doc.text('ALL NEW PCX COMMUNITY', w / 2, 34, { align: 'center' });
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.text(`SERTIFIKAT ${opts.type}`, w / 2, 55, { align: 'center' });
+
+  doc.setDrawColor(...gold);
+  doc.setLineWidth(0.5);
+  doc.line(w / 2 - 40, 60, w / 2 + 40, 60);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(215, 215, 215);
+  doc.text('Dengan bangga diberikan kepada', w / 2, 75, { align: 'center' });
+
+  doc.setFont('times', 'bolditalic');
+  doc.setFontSize(26);
+  doc.setTextColor(...gold);
+  doc.text((currentProfile?.nama || '-').toUpperCase(), w / 2, 90, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(215, 215, 215);
+  const descLines = opts.description.split('\n');
+  let y = 102;
+  descLines.forEach(line => {
+    doc.text(line, w / 2, y, { align: 'center' });
+    y += 6;
+  });
+
+  const dateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(170, 170, 170);
+  doc.text(`Diterbitkan di Sukabumi, ${dateStr}`, w / 2, h - 22, { align: 'center' });
+  doc.setFont('times', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...gold);
+  doc.text('Pengurus ANPC Chapter Sukabumi', w / 2, h - 15, { align: 'center' });
+
+  const namaFile = (currentProfile?.nama || 'member').replace(/\s+/g, '_');
+  doc.save(`Sertifikat_${opts.type.replace(/\s+/g, '_')}_${namaFile}.pdf`);
 }
 
 function showToast(msg) {
