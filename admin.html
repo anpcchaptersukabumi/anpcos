@@ -355,6 +355,10 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
     <img id="galeriFotoPreview" class="hidden" style="width:100%; max-height:160px; object-fit:cover; margin-top:8px;"/>
     <label>Keterangan (opsional)</label>
     <input type="text" id="galeriKeterangan" placeholder="Contoh: Kopdar Sukabumi Juli 2026"/>
+    <label>Event Terkait (opsional)</label>
+    <select id="galeriEvent" style="width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; border-radius:8px;">
+      <option value="">— Nggak terkait event tertentu —</option>
+    </select>
     <label>Urutan Tampil (angka kecil tampil duluan)</label>
     <input type="number" id="galeriUrutan" placeholder="0"/>
     <div class="action-buttons">
@@ -1232,13 +1236,26 @@ async function deleteKegiatan(id, judul) {
 /* ===== GALERI ===== */
 async function loadGaleri() {
   document.getElementById('galeriListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
-  const { data, error } = await supabaseClient.from('galeri').select('*').order('urutan', { ascending: true });
+  const [{ data, error }, eventsRes] = await Promise.all([
+    supabaseClient.from('galeri').select('*').order('urutan', { ascending: true }),
+    allEvents.length === 0 ? supabaseClient.from('events').select('id, nama, tanggal').order('tanggal', { ascending: false }) : Promise.resolve({ data: allEvents }),
+  ]);
   if (error) {
     document.getElementById('galeriListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
     return;
   }
   allGaleri = data || [];
+  if (allEvents.length === 0) allEvents = eventsRes.data || [];
+  populateGaleriEventDropdown();
   renderGaleriList();
+}
+
+function populateGaleriEventDropdown() {
+  const sel = document.getElementById('galeriEvent');
+  if (!sel) return;
+  const sorted = [...allEvents].sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+  sel.innerHTML = '<option value="">— Nggak terkait event tertentu —</option>' +
+    sorted.map(e => `<option value="${e.id}">${escapeHtml(e.nama)} (${new Date(e.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })})</option>`).join('');
 }
 
 function renderGaleriList() {
@@ -1247,10 +1264,13 @@ function renderGaleriList() {
     container.innerHTML = '<div class="empty-state">Belum ada foto galeri. Klik "+ Tambah Foto" untuk mulai.</div>';
     return;
   }
-  container.innerHTML = allGaleri.map(g => `
+  container.innerHTML = allGaleri.map(g => {
+    const ev = g.event_id ? allEvents.find(e => e.id === g.event_id) : null;
+    return `
     <div style="background:var(--black-3); border:1px solid rgba(212,175,55,0.1); border-radius:12px; overflow:hidden;">
       <img src="${g.foto_url}" style="width:100%; aspect-ratio:1; object-fit:cover; display:block;"/>
       <div style="padding:8px 10px;">
+        ${ev ? `<div style="font-size:0.66rem; color:var(--gold); font-weight:700; margin-bottom:4px;">🏍️ ${escapeHtml(ev.nama)}</div>` : ''}
         <div style="font-size:0.75rem; color:var(--grey-light); margin-bottom:6px; min-height:1.2em;">${g.keterangan ? escapeHtml(g.keterangan) : ''}</div>
         <div style="display:flex; gap:6px;">
           <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openGaleriModal('${g.id}')" title="Edit">✎</button>
@@ -1258,7 +1278,8 @@ function renderGaleriList() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function previewGaleriFoto(evt) {
@@ -1287,12 +1308,14 @@ function openGaleriModal(id) {
     const g = allGaleri.find(x => x.id === id);
     document.getElementById('galeriModalTitle').textContent = 'Edit Foto Galeri';
     document.getElementById('galeriKeterangan').value = g.keterangan || '';
+    document.getElementById('galeriEvent').value = g.event_id || '';
     document.getElementById('galeriUrutan').value = g.urutan ?? 0;
     if (g.foto_url) { preview.src = g.foto_url; preview.classList.remove('hidden'); }
     else { preview.classList.add('hidden'); }
   } else {
     document.getElementById('galeriModalTitle').textContent = 'Tambah Foto Galeri';
     document.getElementById('galeriKeterangan').value = '';
+    document.getElementById('galeriEvent').value = '';
     document.getElementById('galeriUrutan').value = allGaleri.length;
     preview.classList.add('hidden');
   }
@@ -1306,6 +1329,7 @@ function closeGaleriModal() {
 async function saveGaleri() {
   const id = document.getElementById('galeriModal').dataset.galeriId;
   const keterangan = document.getElementById('galeriKeterangan').value.trim();
+  const eventId = document.getElementById('galeriEvent').value || null;
   const urutan = parseInt(document.getElementById('galeriUrutan').value) || 0;
   const fotoFile = document.getElementById('galeriFoto').files[0];
 
@@ -1315,7 +1339,7 @@ async function saveGaleri() {
   btn.disabled = true;
   btn.textContent = fotoFile ? 'Mengunggah foto...' : 'Menyimpan...';
 
-  const payload = { keterangan, urutan };
+  const payload = { keterangan, event_id: eventId, urutan };
 
   try {
     if (fotoFile) payload.foto_url = await uploadGaleriImage(fotoFile);
