@@ -602,6 +602,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <label class="f-label">Password</label>
           <input type="password" class="f-input" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
         </div>
+        <p style="text-align:right; margin:-0.6rem 0 1rem;"><a href="#" onclick="switchTab('forgot')" style="color:var(--gold); font-size:0.8rem;">Lupa password?</a></p>
         <div class="auth-err" id="loginErr"></div>
         <button class="btn-auth" id="loginBtn" onclick="doLogin()">Masuk ke Portal</button>
         <p class="auth-note">Belum punya akun? <a href="#" onclick="switchTab('register')" style="color:var(--gold)">Daftar sekarang</a></p>
@@ -627,6 +628,33 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         <div class="auth-ok" id="regOk"></div>
         <button class="btn-auth" id="regBtn" onclick="doRegister()">Buat Akun</button>
         <p class="auth-note">Sudah punya akun? <a href="#" onclick="switchTab('login')" style="color:var(--gold)">Masuk di sini</a></p>
+      </div>
+      <!-- FORGOT PASSWORD -->
+      <div class="auth-pane" id="paneForgot">
+        <p style="color:var(--grey); font-size:0.85rem; margin-bottom:1.2rem; line-height:1.6;">Masukkan email akun kamu. Kami bakal kirim link buat bikin password baru.</p>
+        <div class="f-group">
+          <label class="f-label">Email</label>
+          <input type="email" class="f-input" id="forgotEmail" placeholder="email@example.com"/>
+        </div>
+        <div class="auth-err" id="forgotErr"></div>
+        <div class="auth-ok" id="forgotOk"></div>
+        <button class="btn-auth" id="forgotBtn" onclick="doForgotPassword()">Kirim Link Reset</button>
+        <p class="auth-note"><a href="#" onclick="switchTab('login')" style="color:var(--gold)">← Kembali ke Masuk</a></p>
+      </div>
+      <!-- RESET PASSWORD (dibuka otomatis dari link email) -->
+      <div class="auth-pane" id="paneResetPassword">
+        <p style="color:var(--grey); font-size:0.85rem; margin-bottom:1.2rem; line-height:1.6;">Masukkan password baru buat akun kamu.</p>
+        <div class="f-group">
+          <label class="f-label">Password Baru</label>
+          <input type="password" class="f-input" id="resetPass" placeholder="Min. 6 karakter"/>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Konfirmasi Password Baru</label>
+          <input type="password" class="f-input" id="resetPassConfirm" placeholder="Ulangi password baru"/>
+        </div>
+        <div class="auth-err" id="resetErr"></div>
+        <div class="auth-ok" id="resetOk"></div>
+        <button class="btn-auth" id="resetBtn" onclick="doSetNewPassword()">Simpan Password Baru</button>
       </div>
     </div>
   </div>
@@ -841,6 +869,21 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <button class="btn-save" onclick="saveProfil()">Simpan Perubahan</button>
           <div class="save-ok" id="saveOk">✓ Profil berhasil disimpan!</div>
         </div>
+
+        <div class="profil-card" style="margin-top:1.4rem;">
+          <div style="font-family:'Cinzel',serif; font-weight:700; color:var(--gold); font-size:1rem; margin-bottom:1rem;">🔒 Ganti Password</div>
+          <div class="f-group">
+            <label class="f-label">Password Baru</label>
+            <input type="password" class="f-input" id="pNewPass" placeholder="Min. 6 karakter"/>
+          </div>
+          <div class="f-group">
+            <label class="f-label">Konfirmasi Password Baru</label>
+            <input type="password" class="f-input" id="pNewPassConfirm" placeholder="Ulangi password baru"/>
+          </div>
+          <div class="auth-err" id="pPassErr"></div>
+          <div class="save-ok" id="pPassOk">✓ Password berhasil diganti!</div>
+          <button class="btn-save" id="pPassBtn" onclick="changeMyPassword()">Ganti Password</button>
+        </div>
       </div>
 
       <!-- GARASI KENDARAAN PAGE -->
@@ -1016,12 +1059,23 @@ async function init() {
     currentUser = session.user;
     await loadDash();
   }
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      document.getElementById('dashScreen').classList.remove('active');
+      document.getElementById('authScreen').classList.add('active');
+      document.querySelectorAll('.auth-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('paneResetPassword').classList.add('active');
+      document.querySelector('.auth-tabs').style.display = 'none';
+    }
+  });
 }
 
 function switchTab(tab) {
   document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
   document.getElementById('paneLogin').classList.toggle('active', tab==='login');
   document.getElementById('paneRegister').classList.toggle('active', tab==='register');
+  document.getElementById('paneForgot').classList.toggle('active', tab==='forgot');
+  document.querySelector('.auth-tabs').style.display = tab === 'forgot' ? 'none' : 'flex';
 }
 
 async function doLogin() {
@@ -1082,6 +1136,53 @@ async function doRegister() {
   ok.textContent='✓ Akun berhasil dibuat! Silakan login sekarang.';
   ok.style.display='block';
   setTimeout(() => switchTab('login'), 2500);
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  const btn = document.getElementById('forgotBtn');
+  const err = document.getElementById('forgotErr');
+  const ok = document.getElementById('forgotOk');
+  err.style.display = 'none'; ok.style.display = 'none';
+
+  if (!email) { err.textContent = 'Email wajib diisi.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Mengirim...';
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  btn.disabled = false; btn.textContent = 'Kirim Link Reset';
+
+  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+  ok.textContent = '✓ Link reset password udah dikirim ke email kamu. Cek inbox (atau folder spam), terus buka linknya.';
+  ok.style.display = 'block';
+}
+
+async function doSetNewPassword() {
+  const pass = document.getElementById('resetPass').value;
+  const passConfirm = document.getElementById('resetPassConfirm').value;
+  const btn = document.getElementById('resetBtn');
+  const err = document.getElementById('resetErr');
+  const ok = document.getElementById('resetOk');
+  err.style.display = 'none'; ok.style.display = 'none';
+
+  if (pass.length < 6) { err.textContent = 'Password minimal 6 karakter.'; err.style.display = 'block'; return; }
+  if (pass !== passConfirm) { err.textContent = 'Konfirmasi password tidak cocok.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  const { error } = await sb.auth.updateUser({ password: pass });
+  btn.disabled = false; btn.textContent = 'Simpan Password Baru';
+
+  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+  ok.textContent = '✓ Password berhasil diganti! Mengalihkan ke portal...';
+  ok.style.display = 'block';
+  setTimeout(async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      await loadDash();
+    }
+  }, 1800);
 }
 
 async function doLogout() {
@@ -1231,6 +1332,29 @@ async function saveProfil() {
     setTimeout(() => document.getElementById('saveOk').style.display='none', 3000);
     showToast('✓ Profil berhasil disimpan');
   }
+}
+
+async function changeMyPassword() {
+  const pass = document.getElementById('pNewPass').value;
+  const passConfirm = document.getElementById('pNewPassConfirm').value;
+  const err = document.getElementById('pPassErr');
+  const ok = document.getElementById('pPassOk');
+  const btn = document.getElementById('pPassBtn');
+  err.style.display = 'none'; ok.style.display = 'none';
+
+  if (pass.length < 6) { err.textContent = 'Password minimal 6 karakter.'; err.style.display = 'block'; return; }
+  if (pass !== passConfirm) { err.textContent = 'Konfirmasi password tidak cocok.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  const { error } = await sb.auth.updateUser({ password: pass });
+  btn.disabled = false; btn.textContent = 'Ganti Password';
+
+  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+  document.getElementById('pNewPass').value = '';
+  document.getElementById('pNewPassConfirm').value = '';
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 3000);
+  showToast('✓ Password berhasil diganti');
 }
 
 function downloadKTA() {
