@@ -15,6 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   --gold:#D4AF37;--gold-l:#F4D87C;--gold-d:#9C7A1E;
@@ -1474,12 +1475,38 @@ async function changeMyPassword() {
   showToast('✓ Password berhasil diganti');
 }
 
-function downloadKTA() {
+async function downloadKTA() {
   const card = document.getElementById('ktaCard');
-  showToast('💾 Fitur download membutuhkan library html2canvas — tambahkan ke hosting lu');
+  showToast('⏳ Menyiapkan gambar KTA...');
+  try {
+    const canvas = await html2canvas(card, { useCORS: true, backgroundColor: null, scale: 2 });
+    const link = document.createElement('a');
+    link.download = `KTA_${(currentProfile?.nama || 'ANPC').replace(/\s+/g, '_')}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✓ KTA berhasil didownload');
+  } catch (err) {
+    showToast('Gagal download KTA: ' + err.message);
+  }
 }
 
-function shareKTA() {
+async function shareKTA() {
+  const card = document.getElementById('ktaCard');
+  try {
+    const canvas = await html2canvas(card, { useCORS: true, backgroundColor: null, scale: 2 });
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    const file = new File([blob], `KTA_${(currentProfile?.nama || 'ANPC').replace(/\s+/g, '_')}.png`, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'KTA ANPC Sukabumi',
+        text: `KTA Digital ${currentProfile?.nama || ''} - ANPC Chapter Sukabumi`,
+      });
+      return;
+    }
+  } catch (err) {
+    // Kalau gagal generate gambar atau share dibatalkan, lanjut ke fallback teks di bawah
+  }
   const text = `Halo! Ini KTA Digital saya sebagai member ANPC Chapter Sukabumi.\nNama: ${currentProfile?.nama}\nNo. Anggota: ${currentProfile?.no_anggota || 'PENDING'}\nStatus: ${currentProfile?.status}`;
   if (navigator.share) {
     navigator.share({ title: 'KTA ANPC Sukabumi', text });
