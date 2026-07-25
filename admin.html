@@ -148,6 +148,7 @@
       <button class="section-btn" id="btnSectionBroadcast" onclick="switchSection('broadcast')">📢 Broadcast WA</button>
       <button class="section-btn" id="btnSectionArsip" onclick="switchSection('arsip')">📁 Dokumen & Arsip</button>
       <button class="section-btn" id="btnSectionSOS" onclick="switchSection('sos')">🆘 Kontak Darurat</button>
+      <button class="section-btn" id="btnSectionRetensi" onclick="switchSection('retensi')">📉 Retensi Member</button>
     </div>
 
     <div id="sectionDashboard">
@@ -282,6 +283,18 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
         <button class="btn-outline" onclick="openSOSModal()">+ Tambah Kontak</button>
       </div>
       <div id="sosListContainer"></div>
+    </div>
+
+    <div id="sectionRetensi" class="hidden">
+      <p class="dashboard-intro">Member aktif diurutin dari yang <b>paling lama nggak ikut event</b> — biar bisa di-follow up sebelum mereka "menghilang" dari komunitas.</p>
+      <div class="dashboard-grid" id="retensiSummaryGrid" style="margin-bottom:1.6rem;"></div>
+      <div style="display:flex; gap:12px; margin-bottom:1.6rem; align-items:center; flex-wrap:wrap;">
+        <div class="search-wrap" style="flex:1; max-width:360px;">
+          <input type="text" id="retensiSearchInput" style="width:100%;" placeholder="Cari nama atau no. anggota..." oninput="renderRetensiList()"/>
+        </div>
+        <button class="btn-outline" onclick="loadRetensi()">⟳ Muat Ulang</button>
+      </div>
+      <div id="retensiListContainer"></div>
     </div>
   </main>
 </div>
@@ -532,6 +545,7 @@ let allRoleProfiles = [];
 let allBroadcastMembers = [];
 let allArsip = [];
 let allSOS = [];
+let allRetensi = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -731,6 +745,7 @@ function switchSection(name) {
   document.getElementById('btnSectionBroadcast').classList.toggle('active', name === 'broadcast');
   document.getElementById('btnSectionArsip').classList.toggle('active', name === 'arsip');
   document.getElementById('btnSectionSOS').classList.toggle('active', name === 'sos');
+  document.getElementById('btnSectionRetensi').classList.toggle('active', name === 'retensi');
   document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
@@ -745,6 +760,7 @@ function switchSection(name) {
   document.getElementById('sectionBroadcast').classList.toggle('hidden', name !== 'broadcast');
   document.getElementById('sectionArsip').classList.toggle('hidden', name !== 'arsip');
   document.getElementById('sectionSOS').classList.toggle('hidden', name !== 'sos');
+  document.getElementById('sectionRetensi').classList.toggle('hidden', name !== 'retensi');
   document.getElementById('searchInput').value = '';
   if (name === 'dashboard') {
     loadDashboardStats();
@@ -777,6 +793,8 @@ function switchSection(name) {
     loadArsip();
   } else if (name === 'sos') {
     loadSOS();
+  } else if (name === 'retensi') {
+    loadRetensi();
   }
 }
 
@@ -2231,6 +2249,123 @@ async function deleteSOS(id, nama) {
   allSOS = allSOS.filter(x => x.id !== id);
   renderSOSList();
   showToast(`Kontak "${nama}" dihapus`);
+}
+
+/* ===== RETENSI MEMBER ===== */
+async function loadRetensi() {
+  document.getElementById('retensiListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const [{ data: profiles, error: profError }, { data: absensi }] = await Promise.all([
+    supabaseClient.from('profiles').select('id, nama, no_anggota, whatsapp, role').eq('status', 'aktif'),
+    supabaseClient.from('absensi').select('member_id, events(tanggal)'),
+  ]);
+  if (profError) {
+    document.getElementById('retensiListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${profError.message}</div>`;
+    return;
+  }
+  const activeMembers = (profiles || []).filter(p => !['admin', 'pengurus'].includes(p.role));
+
+  const lastAttendance = {};
+  (absensi || []).forEach(a => {
+    const tgl = a.events?.tanggal;
+    if (!tgl) return;
+    if (!lastAttendance[a.member_id] || tgl > lastAttendance[a.member_id]) {
+      lastAttendance[a.member_id] = tgl;
+    }
+  });
+
+  const today = new Date();
+  const results = activeMembers.map(m => {
+    const last = lastAttendance[m.id] || null;
+    const daysSince = last ? Math.floor((today - new Date(last)) / (1000 * 60 * 60 * 24)) : null;
+    return { ...m, lastAttendance: last, daysSince };
+  });
+
+  results.sort((a, b) => {
+    if (a.daysSince === null && b.daysSince === null) return 0;
+    if (a.daysSince === null) return -1;
+    if (b.daysSince === null) return 1;
+    return b.daysSince - a.daysSince;
+  });
+
+  allRetensi = results;
+  renderRetensiSummary();
+  renderRetensiList();
+}
+
+function renderRetensiSummary() {
+  const neverAttended = allRetensi.filter(m => m.daysSince === null).length;
+  const over90 = allRetensi.filter(m => m.daysSince !== null && m.daysSince > 90).length;
+  const over30 = allRetensi.filter(m => m.daysSince !== null && m.daysSince > 30 && m.daysSince <= 90).length;
+  const active30 = allRetensi.filter(m => m.daysSince !== null && m.daysSince <= 30).length;
+
+  document.getElementById('retensiSummaryGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon">🚫</div>
+      <div><div class="stat-value" style="color:#F87171;">${neverAttended}</div><div class="stat-label">Belum Pernah Ikut Event</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚠️</div>
+      <div><div class="stat-value" style="color:#FB923C;">${over90}</div><div class="stat-label">Nggak Aktif &gt; 90 Hari</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div><div class="stat-value" style="color:#FBBF24;">${over30}</div><div class="stat-label">Nggak Aktif 30-90 Hari</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div><div class="stat-value" style="color:#4ADE80;">${active30}</div><div class="stat-label">Aktif 30 Hari Terakhir</div></div>
+    </div>
+  `;
+}
+
+function renderRetensiList() {
+  const search = (document.getElementById('retensiSearchInput')?.value || '').toLowerCase();
+  let filtered = allRetensi;
+  if (search) filtered = filtered.filter(m => (m.nama + (m.no_anggota || '')).toLowerCase().includes(search));
+
+  const container = document.getElementById('retensiListContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Tidak ada member yang cocok.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(m => {
+    let statusLabel, statusColor;
+    if (m.daysSince === null) {
+      statusLabel = 'Belum pernah ikut event';
+      statusColor = '#F87171';
+    } else if (m.daysSince > 90) {
+      statusLabel = `${m.daysSince} hari nggak aktif`;
+      statusColor = '#FB923C';
+    } else if (m.daysSince > 30) {
+      statusLabel = `${m.daysSince} hari nggak aktif`;
+      statusColor = '#FBBF24';
+    } else {
+      statusLabel = `Aktif ${m.daysSince} hari lalu`;
+      statusColor = '#4ADE80';
+    }
+    return `
+      <div class="member-card">
+        <div style="min-width:200px;flex:1;">
+          <div class="nama">${escapeHtml(m.nama || '(Belum lengkap)')}</div>
+          <div class="member-meta">
+            <span>🎖️ ${escapeHtml(m.no_anggota || '-')}</span>
+            <span style="color:${statusColor}; font-weight:700;">● ${statusLabel}</span>
+          </div>
+        </div>
+        <div class="action-row">
+          ${m.whatsapp ? `<button class="btn-outline" style="border-color:rgba(37,211,102,0.4); color:#25D366; background:rgba(37,211,102,0.08);" onclick="followUpRetensi('${m.whatsapp}','${escapeHtml(m.nama || 'Member')}')">💬 Follow Up</button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function followUpRetensi(nomor, nama) {
+  const link = waLinkAdmin(nomor);
+  if (!link) { showToast('Nomor WA tidak valid'); return; }
+  const msg = `Halo ${nama} 👋! Udah lama nih nggak keliatan di kopdar ANPC. Semua baik-baik aja kan? Jangan lupa mampir kopdar berikutnya ya 😊`;
+  window.open(link + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 async function openAttendanceModal(eventId) {
