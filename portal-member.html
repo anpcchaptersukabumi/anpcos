@@ -118,6 +118,25 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .topbar-avatar{width:36px;height:36px;border-radius:50%;background:rgba(212,175,55,0.15);
   border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;
   color:var(--gold);font-weight:700;font-size:0.9rem;cursor:pointer;font-family:'Rajdhani',sans-serif;}
+
+/* NOTIFIKASI */
+.notif-bell{position:relative;cursor:pointer;font-size:1.15rem;display:flex;align-items:center;
+  justify-content:center;width:36px;height:36px;border-radius:50%;transition:background 0.2s;}
+.notif-bell:hover{background:rgba(212,175,55,0.1);}
+.notif-dot{position:absolute;top:5px;right:6px;width:9px;height:9px;background:#EF4444;
+  border-radius:50%;border:2px solid var(--blk2);}
+.notif-panel{position:fixed;top:70px;right:1.5rem;width:320px;max-width:calc(100vw - 2rem);
+  max-height:440px;overflow-y:auto;background:var(--blk2);border:1px solid rgba(212,175,55,0.2);
+  border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,0.55);z-index:150;}
+.notif-panel.hidden{display:none;}
+.notif-panel-header{padding:14px 16px;font-family:'Cinzel',serif;font-weight:700;color:var(--gold);
+  font-size:0.92rem;border-bottom:1px solid rgba(212,175,55,0.15);position:sticky;top:0;background:var(--blk2);}
+.notif-item{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:background 0.2s;}
+.notif-item:last-child{border-bottom:none;}
+.notif-item:hover{background:rgba(212,175,55,0.06);}
+.notif-item-title{font-weight:700;font-size:0.84rem;color:var(--grey-l);}
+.notif-item-sub{font-size:0.7rem;color:var(--grey);margin-top:3px;}
+.notif-empty{padding:2rem 1rem;text-align:center;color:var(--grey);font-size:0.85rem;}
 .btn-logout{background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--grey);
   padding:7px 14px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.75rem;
   letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
@@ -725,9 +744,18 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="topbar-brand-text">ANPC OS<span>Chapter Sukabumi</span></div>
     </div>
     <div class="topbar-right">
+      <div class="notif-bell" id="notifBell" onclick="toggleNotifPanel(event)">
+        🔔
+        <span class="notif-dot" id="notifDot" style="display:none;"></span>
+      </div>
       <div class="topbar-avatar" id="topAvatar">?</div>
       <button class="btn-logout" onclick="doLogout()">Keluar</button>
     </div>
+  </div>
+
+  <div class="notif-panel hidden" id="notifPanel">
+    <div class="notif-panel-header">🔔 Notifikasi</div>
+    <div id="notifList"></div>
   </div>
 
   <div class="layout">
@@ -1316,6 +1344,7 @@ async function loadDash() {
   currentProfile = prof;
   renderDash();
   loadBadgeData();
+  loadNotifications();
 }
 
 function renderDash() {
@@ -2413,6 +2442,94 @@ function renderArsipListPage() {
     `;
   }).join('');
 }
+
+/* ===== NOTIFIKASI ===== */
+let notifItems = [];
+
+async function loadNotifications() {
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+  const sinceStr = since.toISOString();
+
+  try {
+    const [eventsRes, kegiatanRes] = await Promise.all([
+      sb.from('events').select('id, nama, tanggal, created_at').gte('created_at', sinceStr).order('created_at', { ascending: false }),
+      sb.from('kegiatan_kami').select('id, judul, created_at').gte('created_at', sinceStr).order('created_at', { ascending: false }),
+    ]);
+
+    const items = [];
+    (eventsRes.data || []).forEach(e => items.push({
+      title: `📅 Event baru: ${e.nama}`,
+      sub: new Date(e.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+      created_at: e.created_at, page: 'eventPage',
+    }));
+    (kegiatanRes.data || []).forEach(k => items.push({
+      title: `📸 Kegiatan baru: ${k.judul}`,
+      sub: 'Cek di halaman utama ANPC',
+      created_at: k.created_at, page: null,
+    }));
+
+    items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    notifItems = items;
+    renderNotifPanel();
+    updateNotifDot();
+  } catch (err) {
+    notifItems = [];
+  }
+}
+
+function renderNotifPanel() {
+  const list = document.getElementById('notifList');
+  if (notifItems.length === 0) {
+    list.innerHTML = '<div class="notif-empty">Belum ada notifikasi baru.</div>';
+    return;
+  }
+  list.innerHTML = notifItems.map(item => {
+    const dateFmt = new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    return `
+      <div class="notif-item" onclick="handleNotifClick(${item.page ? `'${item.page}'` : 'null'})">
+        <div class="notif-item-title">${escapeHtmlP(item.title)}</div>
+        <div class="notif-item-sub">${escapeHtmlP(item.sub)} · ${dateFmt}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateNotifDot() {
+  const lastCheck = localStorage.getItem('anpcNotifLastCheck');
+  const dot = document.getElementById('notifDot');
+  if (!dot) return;
+  if (!lastCheck) {
+    dot.style.display = notifItems.length > 0 ? 'block' : 'none';
+    return;
+  }
+  const hasNew = notifItems.some(item => new Date(item.created_at) > new Date(lastCheck));
+  dot.style.display = hasNew ? 'block' : 'none';
+}
+
+function toggleNotifPanel(evt) {
+  if (evt) evt.stopPropagation();
+  const panel = document.getElementById('notifPanel');
+  panel.classList.toggle('hidden');
+  if (!panel.classList.contains('hidden')) {
+    localStorage.setItem('anpcNotifLastCheck', new Date().toISOString());
+    document.getElementById('notifDot').style.display = 'none';
+  }
+}
+
+function handleNotifClick(page) {
+  document.getElementById('notifPanel').classList.add('hidden');
+  if (page) showPage(page);
+}
+
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notifPanel');
+  const bell = document.getElementById('notifBell');
+  if (!panel || panel.classList.contains('hidden')) return;
+  if (!panel.contains(e.target) && !bell.contains(e.target)) {
+    panel.classList.add('hidden');
+  }
+});
 
 function showToast(msg) {
   const t = document.getElementById('toast');
