@@ -123,6 +123,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .notif-bell{position:relative;cursor:pointer;font-size:1.15rem;display:flex;align-items:center;
   justify-content:center;width:36px;height:36px;border-radius:50%;transition:background 0.2s;}
 .notif-bell:hover{background:rgba(212,175,55,0.1);}
+.notif-bell-icon{width:22px;height:22px;object-fit:contain;}
 .notif-dot{position:absolute;top:5px;right:6px;width:9px;height:9px;background:#EF4444;
   border-radius:50%;border:2px solid var(--blk2);}
 .notif-panel{position:fixed;top:70px;right:1.5rem;width:320px;max-width:calc(100vw - 2rem);
@@ -157,7 +158,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   letter-spacing:.5px;cursor:pointer;transition:all .2s;border-left:2px solid transparent;}
 .nav-item:hover{color:var(--grey-l);background:rgba(255,255,255,0.03);}
 .nav-item.active{color:var(--gold);background:rgba(212,175,55,0.07);border-left-color:var(--gold);}
-.nav-icon{font-size:1rem;width:20px;text-align:center;}
+.nav-icon{width:20px;height:20px;object-fit:contain;flex-shrink:0;}
 .nav-item-sos{color:#F87171;font-weight:700;background:rgba(239,68,68,0.06);
   border-left-color:rgba(239,68,68,0.4);margin-bottom:4px;}
 .nav-item-sos:hover{color:#FCA5A5;background:rgba(239,68,68,0.1);}
@@ -713,7 +714,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   font-size:0.65rem;letter-spacing:.3px;cursor:pointer;flex:1 0 auto;min-width:52px;padding:6px 4px;
 }
 .bottom-nav-item.active{color:var(--gold);}
-.bottom-nav-icon{font-size:1.1rem;}
+.bottom-nav-icon{width:20px;height:20px;object-fit:contain;}
 .bottom-nav-item-sos{color:#F87171;}
 .bottom-nav-item-sos.active{color:#F87171;}
 
@@ -730,7 +731,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   border-bottom:1px solid rgba(255,255,255,0.06);}
 .more-menu-item:last-child{border-bottom:none;}
 .more-menu-item:active{background:rgba(212,175,55,0.07);}
-.more-menu-icon{font-size:1.2rem;width:26px;text-align:center;flex-shrink:0;}
+.more-menu-icon{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
 @keyframes moreMenuSlideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 @media(min-width:769px){
   .more-menu-overlay{display:none !important;}
@@ -841,7 +842,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
     </div>
     <div class="topbar-right">
       <div class="notif-bell" id="notifBell" onclick="toggleNotifPanel(event)">
-        🔔
+        <img class="notif-bell-icon" src="icon-notif.png" alt="Notifikasi"/>
         <span class="notif-dot" id="notifDot" style="display:none;"></span>
       </div>
       <div class="topbar-avatar" id="topAvatar">?</div>
@@ -861,60 +862,60 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       </div>
       <div class="sidebar-section">Member</div>
       <div class="nav-item active" data-page="ktaPage" onclick="showPage('ktaPage')">
-        <span class="nav-icon">🪪</span> KTA Digital
+        <img class="nav-icon" src="icon-kta.png" alt=""/> KTA Digital
       </div>
       <div class="nav-item" data-page="profilPage" onclick="showPage('profilPage')">
-        <span class="nav-icon">👤</span> Profil Saya
+        <img class="nav-icon" src="icon-profil.png" alt=""/> Profil Saya
       </div>
       <div class="nav-item" data-page="garasiPage" onclick="showPage('garasiPage')">
-        <span class="nav-icon">🏠</span> Garasi Kendaraan
+        <img class="nav-icon" src="icon-garasi.png" alt=""/> Garasi Kendaraan
       </div>
       <div class="sidebar-section">Komunitas</div>
       <div class="nav-item" data-page="eventPage" onclick="showPage('eventPage')">
-        <span class="nav-icon">📅</span> Event & Kopdar
+        <img class="nav-icon" src="icon-event.png" alt=""/> Event & Kopdar
       </div>
       <div class="nav-item" data-page="pollingPage" onclick="showPage('pollingPage')">
-        <span class="nav-icon">🗳️</span> Polling & Voting
+        <img class="nav-icon" src="icon-polling.png" alt=""/> Polling & Voting
       </div>
       <div class="nav-item" data-page="marketplacePage" onclick="showPage('marketplacePage')">
-        <span class="nav-icon">🛒</span> Marketplace
+        <img class="nav-icon" src="icon-marketplace.png" alt=""/> Marketplace
       </div>
       <div class="nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
-        <span class="nav-icon">🏍️</span> Seberapa ANPC
+        <img class="nav-icon" src="icon-mileage.png" alt=""/> Seberapa ANPC
       </div>
       <div class="nav-item" data-page="badgePage" onclick="showPage('badgePage')">
-        <span class="nav-icon">🏆</span> Badge Pencapaian
+        <img class="nav-icon" src="icon-badge.png" alt=""/> Badge Pencapaian
       </div>
       <div class="nav-item" data-page="kenalanPage" onclick="showPage('kenalanPage')">
-        <span class="nav-icon">👋</span> Kenalan Yuk
+        <img class="nav-icon" src="icon-kenalan.png" alt=""/> Kenalan Yuk
       </div>
       <div class="sidebar-section">Info</div>
       <div class="nav-item" data-page="sertifikatPage" onclick="showPage('sertifikatPage')">
-        <span class="nav-icon">📜</span> Sertifikat
+        <img class="nav-icon" src="icon-sertifikat.png" alt=""/> Sertifikat
       </div>
       <div class="nav-item" data-page="arsipPage" onclick="showPage('arsipPage')">
-        <span class="nav-icon">📁</span> Dokumen & Arsip
+        <img class="nav-icon" src="icon-arsip.png" alt=""/> Dokumen & Arsip
       </div>
       <div class="nav-item" data-page="kasPage" onclick="showPage('kasPage')">
-        <span class="nav-icon">💰</span> Kas Chapter
+        <img class="nav-icon" src="icon-kas.png" alt=""/> Kas Chapter
       </div>
       <div class="nav-item" data-page="pengurusPage" onclick="showPage('pengurusPage')">
-        <span class="nav-icon">🎗️</span> Struktur Pengurus
+        <img class="nav-icon" src="icon-pengurus.png" alt=""/> Struktur Pengurus
       </div>
       <div class="nav-item" onclick="window.open('index.html','_blank')">
-        <span class="nav-icon">🌐</span> Website ANPC
+        <img class="nav-icon" src="icon-website.png" alt=""/> Website ANPC
       </div>
     </aside>
 
     <nav class="bottom-nav">
       <div class="bottom-nav-item active" data-page="ktaPage" onclick="showPage('ktaPage')">
-        <span class="bottom-nav-icon">🪪</span><span>KTA</span>
+        <img class="bottom-nav-icon" src="icon-kta.png" alt=""/><span>KTA</span>
       </div>
       <div class="bottom-nav-item" data-page="eventPage" onclick="showPage('eventPage')">
-        <span class="bottom-nav-icon">📅</span><span>Event</span>
+        <img class="bottom-nav-icon" src="icon-event.png" alt=""/><span>Event</span>
       </div>
       <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
-        <span class="bottom-nav-icon">🏍️</span><span>Mileage</span>
+        <img class="bottom-nav-icon" src="icon-mileage.png" alt=""/><span>Mileage</span>
       </div>
       <div class="bottom-nav-item bottom-nav-item-sos" data-page="sosPage" onclick="showPage('sosPage')">
         <span class="bottom-nav-icon">🆘</span><span>SOS</span>
@@ -928,37 +929,37 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="more-menu-sheet">
         <div class="more-menu-handle"></div>
         <div class="more-menu-item" data-page="kenalanPage" onclick="showPage('kenalanPage'); closeMoreMenu();">
-          <span class="more-menu-icon">👋</span> Kenalan Yuk
+          <img class="more-menu-icon" src="icon-kenalan.png" alt=""/> Kenalan Yuk
         </div>
         <div class="more-menu-item" data-page="pollingPage" onclick="showPage('pollingPage'); closeMoreMenu();">
-          <span class="more-menu-icon">🗳️</span> Polling & Voting
+          <img class="more-menu-icon" src="icon-polling.png" alt=""/> Polling & Voting
         </div>
         <div class="more-menu-item" data-page="marketplacePage" onclick="showPage('marketplacePage'); closeMoreMenu();">
-          <span class="more-menu-icon">🛒</span> Marketplace
+          <img class="more-menu-icon" src="icon-marketplace.png" alt=""/> Marketplace
         </div>
         <div class="more-menu-item" data-page="profilPage" onclick="showPage('profilPage'); closeMoreMenu();">
-          <span class="more-menu-icon">👤</span> Profil Saya
+          <img class="more-menu-icon" src="icon-profil.png" alt=""/> Profil Saya
         </div>
         <div class="more-menu-item" data-page="garasiPage" onclick="showPage('garasiPage'); closeMoreMenu();">
-          <span class="more-menu-icon">🏠</span> Garasi Kendaraan
+          <img class="more-menu-icon" src="icon-garasi.png" alt=""/> Garasi Kendaraan
         </div>
         <div class="more-menu-item" data-page="badgePage" onclick="showPage('badgePage'); closeMoreMenu();">
-          <span class="more-menu-icon">🏆</span> Badge Pencapaian
+          <img class="more-menu-icon" src="icon-badge.png" alt=""/> Badge Pencapaian
         </div>
         <div class="more-menu-item" data-page="pengurusPage" onclick="showPage('pengurusPage'); closeMoreMenu();">
-          <span class="more-menu-icon">🎗️</span> Struktur Pengurus
+          <img class="more-menu-icon" src="icon-pengurus.png" alt=""/> Struktur Pengurus
         </div>
         <div class="more-menu-item" data-page="sertifikatPage" onclick="showPage('sertifikatPage'); closeMoreMenu();">
-          <span class="more-menu-icon">📜</span> Sertifikat
+          <img class="more-menu-icon" src="icon-sertifikat.png" alt=""/> Sertifikat
         </div>
         <div class="more-menu-item" data-page="arsipPage" onclick="showPage('arsipPage'); closeMoreMenu();">
-          <span class="more-menu-icon">📁</span> Dokumen & Arsip
+          <img class="more-menu-icon" src="icon-arsip.png" alt=""/> Dokumen & Arsip
         </div>
         <div class="more-menu-item" data-page="kasPage" onclick="showPage('kasPage'); closeMoreMenu();">
-          <span class="more-menu-icon">💰</span> Kas Chapter
+          <img class="more-menu-icon" src="icon-kas.png" alt=""/> Kas Chapter
         </div>
         <div class="more-menu-item" onclick="window.open('index.html','_blank'); closeMoreMenu();">
-          <span class="more-menu-icon">🌐</span> Website ANPC
+          <img class="more-menu-icon" src="icon-website.png" alt=""/> Website ANPC
         </div>
       </div>
     </div>
