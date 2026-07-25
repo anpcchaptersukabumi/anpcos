@@ -149,6 +149,7 @@
       <button class="section-btn" id="btnSectionArsip" onclick="switchSection('arsip')">📁 Dokumen & Arsip</button>
       <button class="section-btn" id="btnSectionSOS" onclick="switchSection('sos')">🆘 Kontak Darurat</button>
       <button class="section-btn" id="btnSectionRetensi" onclick="switchSection('retensi')">📉 Retensi Member</button>
+      <button class="section-btn" id="btnSectionPolling" onclick="switchSection('polling')">🗳️ Polling & Voting</button>
     </div>
 
     <div id="sectionDashboard">
@@ -295,6 +296,13 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
         <button class="btn-outline" onclick="loadRetensi()">⟳ Muat Ulang</button>
       </div>
       <div id="retensiListContainer"></div>
+    </div>
+
+    <div id="sectionPolling" class="hidden">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
+        <button class="btn-outline" onclick="openPollingModal()">+ Buat Polling</button>
+      </div>
+      <div id="pollingListContainer"></div>
     </div>
   </main>
 </div>
@@ -524,6 +532,34 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="pollingModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="pollingModalTitle">Buat Polling</h3>
+    <label>Judul Polling</label>
+    <input type="text" id="pollingJudul" placeholder="Contoh: Pilih Rute Touring Bulan Depan"/>
+    <label>Deskripsi (opsional)</label>
+    <input type="text" id="pollingDeskripsi" placeholder="Keterangan singkat, konteks, atau tujuan polling ini"/>
+    <label>Pilihan Jawaban</label>
+    <div id="pollingOpsiContainer"></div>
+    <button class="btn-outline" style="margin-top:8px; margin-bottom:16px;" onclick="addPollingOpsiInput()">+ Tambah Opsi</button>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closePollingModal()">Batal</button>
+      <button class="btn-solid" onclick="savePolling()" id="savePollingBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="pollingResultModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="pollingResultTitle">Hasil Polling</h3>
+    <p id="pollingResultTotal" style="color:var(--grey); font-size:0.85rem; margin-bottom:1rem;"></p>
+    <div id="pollingResultBars"></div>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closePollingResultModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let allMembers = [];
 let activeTab = "pending";
@@ -546,6 +582,8 @@ let allBroadcastMembers = [];
 let allArsip = [];
 let allSOS = [];
 let allRetensi = [];
+let allPolling = [];
+let pollingOpsiDraft = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -746,6 +784,7 @@ function switchSection(name) {
   document.getElementById('btnSectionArsip').classList.toggle('active', name === 'arsip');
   document.getElementById('btnSectionSOS').classList.toggle('active', name === 'sos');
   document.getElementById('btnSectionRetensi').classList.toggle('active', name === 'retensi');
+  document.getElementById('btnSectionPolling').classList.toggle('active', name === 'polling');
   document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
@@ -761,6 +800,7 @@ function switchSection(name) {
   document.getElementById('sectionArsip').classList.toggle('hidden', name !== 'arsip');
   document.getElementById('sectionSOS').classList.toggle('hidden', name !== 'sos');
   document.getElementById('sectionRetensi').classList.toggle('hidden', name !== 'retensi');
+  document.getElementById('sectionPolling').classList.toggle('hidden', name !== 'polling');
   document.getElementById('searchInput').value = '';
   if (name === 'dashboard') {
     loadDashboardStats();
@@ -795,6 +835,8 @@ function switchSection(name) {
     loadSOS();
   } else if (name === 'retensi') {
     loadRetensi();
+  } else if (name === 'polling') {
+    loadPolling();
   }
 }
 
@@ -2366,6 +2408,171 @@ function followUpRetensi(nomor, nama) {
   if (!link) { showToast('Nomor WA tidak valid'); return; }
   const msg = `Halo ${nama} 👋! Udah lama nih nggak keliatan di kopdar ANPC. Semua baik-baik aja kan? Jangan lupa mampir kopdar berikutnya ya 😊`;
   window.open(link + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* ===== POLLING & VOTING ===== */
+async function loadPolling() {
+  document.getElementById('pollingListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('polling').select('*').order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('pollingListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allPolling = data || [];
+  renderPollingList();
+}
+
+function renderPollingList() {
+  const container = document.getElementById('pollingListContainer');
+  if (allPolling.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada polling. Klik "+ Buat Polling" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = allPolling.map(p => {
+    const tanggalFmt = new Date(p.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    const isAktif = p.status === 'aktif';
+    return `
+      <div class="member-card">
+        <div style="width:48px; height:48px; flex-shrink:0; border-radius:10px; background:var(--black-4); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">🗳️</div>
+        <div style="min-width:220px;flex:1;">
+          <div class="nama">${escapeHtml(p.judul)}</div>
+          <div class="member-meta">
+            <span class="badge ${isAktif ? 'badge-approved' : 'badge-rejected'}">${isAktif ? 'Aktif' : 'Ditutup'}</span>
+            <span>📅 ${tanggalFmt}</span>
+          </div>
+          ${p.deskripsi ? `<div class="member-saran">💬 ${escapeHtml(p.deskripsi)}</div>` : ''}
+        </div>
+        <div class="action-row">
+          <button class="btn-outline" onclick="viewPollingResult('${p.id}','${escapeHtml(p.judul)}')">📊 Hasil</button>
+          <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="togglePollingStatus('${p.id}','${p.status}')" title="${isAktif ? 'Tutup Polling' : 'Buka Lagi'}">${isAktif ? '🔒' : '🔓'}</button>
+          <button class="icon-btn delete" onclick="deletePolling('${p.id}','${escapeHtml(p.judul)}')" title="Hapus">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openPollingModal() {
+  document.getElementById('pollingModalTitle').textContent = 'Buat Polling';
+  document.getElementById('pollingJudul').value = '';
+  document.getElementById('pollingDeskripsi').value = '';
+  pollingOpsiDraft = ['', ''];
+  renderPollingOpsiInputs();
+  document.getElementById('pollingModal').classList.remove('hidden');
+}
+
+function closePollingModal() {
+  document.getElementById('pollingModal').classList.add('hidden');
+}
+
+function renderPollingOpsiInputs() {
+  const container = document.getElementById('pollingOpsiContainer');
+  container.innerHTML = pollingOpsiDraft.map((teks, i) => `
+    <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
+      <input type="text" value="${escapeHtml(teks)}" placeholder="Opsi ${i + 1}" oninput="updatePollingOpsiText(${i}, this.value)" style="flex:1; margin:0;"/>
+      ${pollingOpsiDraft.length > 2 ? `<button class="icon-btn delete" onclick="removePollingOpsiInput(${i})" title="Hapus">✕</button>` : ''}
+    </div>
+  `).join('');
+}
+
+function addPollingOpsiInput() {
+  pollingOpsiDraft.push('');
+  renderPollingOpsiInputs();
+}
+
+function removePollingOpsiInput(i) {
+  pollingOpsiDraft.splice(i, 1);
+  renderPollingOpsiInputs();
+}
+
+function updatePollingOpsiText(i, value) {
+  pollingOpsiDraft[i] = value;
+}
+
+async function savePolling() {
+  const judul = document.getElementById('pollingJudul').value.trim();
+  const deskripsi = document.getElementById('pollingDeskripsi').value.trim();
+  const opsiList = pollingOpsiDraft.map(t => t.trim()).filter(t => t);
+
+  if (!judul) { showToast('Judul polling wajib diisi'); return; }
+  if (opsiList.length < 2) { showToast('Minimal 2 opsi jawaban'); return; }
+
+  const btn = document.getElementById('savePollingBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    const { data: pollData, error: pollError } = await supabaseClient.from('polling')
+      .insert({ judul, deskripsi, status: 'aktif' }).select().single();
+    if (pollError) throw pollError;
+
+    const opsiRows = opsiList.map((teks, i) => ({ polling_id: pollData.id, teks, urutan: i }));
+    const { error: opsiError } = await supabaseClient.from('polling_opsi').insert(opsiRows);
+    if (opsiError) throw opsiError;
+
+    closePollingModal();
+    showToast('Polling berhasil dibuat');
+    loadPolling();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function togglePollingStatus(id, currentStatus) {
+  const newStatus = currentStatus === 'aktif' ? 'ditutup' : 'aktif';
+  const { error } = await supabaseClient.from('polling').update({ status: newStatus }).eq('id', id);
+  if (error) { showToast('Gagal mengubah status'); return; }
+  const p = allPolling.find(x => x.id === id);
+  if (p) p.status = newStatus;
+  renderPollingList();
+  showToast(newStatus === 'aktif' ? 'Polling dibuka lagi' : 'Polling ditutup');
+}
+
+async function deletePolling(id, judul) {
+  if (!confirm(`Hapus polling "${judul}"? Semua opsi & vote yang udah masuk juga bakal kehapus.`)) return;
+  const { error } = await supabaseClient.from('polling').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus polling'); return; }
+  allPolling = allPolling.filter(x => x.id !== id);
+  renderPollingList();
+  showToast(`Polling "${judul}" dihapus`);
+}
+
+async function viewPollingResult(id, judul) {
+  document.getElementById('pollingResultTitle').textContent = judul;
+  document.getElementById('pollingResultTotal').textContent = 'Memuat hasil...';
+  document.getElementById('pollingResultBars').innerHTML = '';
+  document.getElementById('pollingResultModal').classList.remove('hidden');
+
+  const { data, error } = await supabaseClient.rpc('get_polling_results', { p_polling_id: id });
+  if (error) {
+    document.getElementById('pollingResultTotal').textContent = 'Gagal memuat hasil.';
+    return;
+  }
+  const results = data || [];
+  const total = results.reduce((sum, r) => sum + Number(r.jumlah_vote), 0);
+  document.getElementById('pollingResultTotal').textContent = `Total ${total} suara masuk`;
+
+  document.getElementById('pollingResultBars').innerHTML = results.map(r => {
+    const pct = total > 0 ? Math.round((Number(r.jumlah_vote) / total) * 100) : 0;
+    return `
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+          <span style="color:var(--grey-light);">${escapeHtml(r.teks)}</span>
+          <span style="color:var(--gold); font-weight:700;">${r.jumlah_vote} (${pct}%)</span>
+        </div>
+        <div style="background:var(--black-4); border-radius:999px; height:10px; overflow:hidden;">
+          <div style="background:var(--gold); height:100%; width:${pct}%; transition:width 0.3s;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function closePollingResultModal() {
+  document.getElementById('pollingResultModal').classList.add('hidden');
 }
 
 async function openAttendanceModal(eventId) {
