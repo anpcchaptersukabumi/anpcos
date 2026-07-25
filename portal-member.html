@@ -253,7 +253,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   padding:14px 16px;cursor:pointer;transition:all .2s;margin-bottom:.75rem;color:var(--white);text-align:left;
 }
 .kta-action-btn:hover{border-color:rgba(212,175,55,0.35);background:rgba(212,175,55,0.04);}
-.kta-action-icon{font-size:1.3rem;}
+.kta-action-icon{width:28px;height:28px;object-fit:contain;flex-shrink:0;}
 .kta-action-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;color:var(--white);}
 .kta-action-desc{font-size:0.75rem;color:var(--grey);}
 
@@ -989,21 +989,21 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
           <div class="kta-actions">
             <h3>Aksi KTA</h3>
             <button class="kta-action-btn" onclick="downloadKTA()">
-              <span class="kta-action-icon">💾</span>
+              <img class="kta-action-icon" src="icon-download-kta.png" alt=""/>
               <div>
                 <div class="kta-action-title">Download KTA</div>
                 <div class="kta-action-desc">Simpan sebagai gambar PNG</div>
               </div>
             </button>
             <button class="kta-action-btn" onclick="shareKTA()">
-              <span class="kta-action-icon">📤</span>
+              <img class="kta-action-icon" src="icon-bagikan-kta.png" alt=""/>
               <div>
                 <div class="kta-action-title">Bagikan KTA</div>
                 <div class="kta-action-desc">Share ke WhatsApp atau sosmed</div>
               </div>
             </button>
             <button class="kta-action-btn" onclick="showPage('profilPage')">
-              <span class="kta-action-icon">✏️</span>
+              <img class="kta-action-icon" src="icon-update-kta.png" alt=""/>
               <div>
                 <div class="kta-action-title">Update Data</div>
                 <div class="kta-action-desc">Edit profil dan info kendaraan</div>
@@ -1014,7 +1014,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 
         <div class="kta-badge-preview" id="ktaBadgePreview">
           <div class="kta-badge-preview-header">
-            <h3>🏆 Badge Pencapaian</h3>
+            <h3><img src="icon-badge.png" style="width:20px; height:20px; object-fit:contain; vertical-align:-4px; margin-right:4px;" alt=""/> Badge Pencapaian</h3>
             <a href="#" onclick="showPage('badgePage')" style="color:var(--gold); font-size:0.78rem; font-weight:600; text-decoration:none;">Lihat Semua →</a>
           </div>
           <div class="kta-badge-preview-grid" id="ktaBadgePreviewGrid">
@@ -1202,7 +1202,7 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
 
         <div class="sertifikat-section">
-          <div class="sertifikat-section-title">🏆 Sertifikat Pencapaian</div>
+          <div class="sertifikat-section-title"><img src="icon-badge.png" style="width:20px; height:20px; object-fit:contain;" alt=""/> Sertifikat Pencapaian</div>
           <div id="sertifikatBadge">
             <div style="color:var(--grey);font-size:.85rem;">Memuat...</div>
           </div>
@@ -2017,7 +2017,7 @@ function renderLeaderboard() {
           <div class="mstat-unit">Agenda</div>
         </div>
         <div class="mstat-box">
-          <div class="mstat-icon">🏆</div>
+          <div class="mstat-icon"><img src="icon-badge.png" style="width:18px; height:18px; object-fit:contain;" alt=""/></div>
           <div class="mstat-label">Rank</div>
           <div class="mstat-value">#${myRank}</div>
           <div class="mstat-unit">Chapter</div>
@@ -2373,7 +2373,7 @@ function renderBadgePreview() {
   container.innerHTML = earned.map(b => {
     const iconHtml = b.icon
       ? `<img src="${b.icon}" alt="${escapeHtmlP(b.nama)}"/>`
-      : `<div class="kta-badge-preview-fallback">🏆</div>`;
+      : `<div class="kta-badge-preview-fallback"><img src="icon-badge.png" style="width:32px; height:32px; object-fit:contain;" alt=""/></div>`;
     return `
       <div class="kta-badge-preview-item" title="${escapeHtmlP(b.nama)}">
         ${iconHtml}
@@ -2400,7 +2400,7 @@ function renderBadges() {
     const kmTarget = Number(b.syarat_km || 0).toFixed(0);
     const iconHtml = b.icon
       ? `<img class="badge-icon" src="${b.icon}" alt="${escapeHtmlP(b.nama)}"/>`
-      : `<div class="badge-icon badge-icon-fallback">🏆</div>`;
+      : `<div class="badge-icon badge-icon-fallback"><img src="icon-badge.png" style="width:70px; height:70px; object-fit:contain;" alt=""/></div>`;
     return `
       <div class="badge-card ${b.earned ? 'earned' : 'locked'}">
         ${iconHtml}
@@ -2526,7 +2526,7 @@ function renderSertifikatBadge() {
   }
   el.innerHTML = earned.map((b) => {
     const idx = allBadgesData.indexOf(b);
-    const iconHtml = b.icon ? `<img src="${b.icon}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;"/>` : '🏆';
+    const iconHtml = b.icon ? `<img src="${b.icon}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;"/>` : '<img src="icon-badge.png" style="width:26px;height:26px;object-fit:contain;" alt=""/>';
     return `
     <div class="sertifikat-card">
       <div class="sertifikat-icon">${iconHtml}</div>
