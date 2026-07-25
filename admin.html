@@ -147,6 +147,7 @@
       <button class="section-btn" id="btnSectionRole" onclick="switchSection('role')">🔑 Role Management</button>
       <button class="section-btn" id="btnSectionBroadcast" onclick="switchSection('broadcast')">📢 Broadcast WA</button>
       <button class="section-btn" id="btnSectionArsip" onclick="switchSection('arsip')">📁 Dokumen & Arsip</button>
+      <button class="section-btn" id="btnSectionSOS" onclick="switchSection('sos')">🆘 Kontak Darurat</button>
     </div>
 
     <div id="sectionDashboard">
@@ -264,6 +265,23 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
         <button class="btn-outline" onclick="openArsipModal()">+ Upload Dokumen</button>
       </div>
       <div id="arsipListContainer"></div>
+    </div>
+
+    <div id="sectionSOS" class="hidden">
+      <div style="display:flex; gap:12px; margin-bottom:1.6rem; align-items:center; flex-wrap:wrap;">
+        <div class="search-wrap" style="flex:1; max-width:360px;">
+          <input type="text" id="sosSearchInput" style="width:100%;" placeholder="Cari nama kontak..." oninput="renderSOSList()"/>
+        </div>
+        <select id="sosKategoriFilter" onchange="renderSOSList()" style="background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:9px 12px; font-family:'Rajdhani',sans-serif; font-size:0.88rem; border-radius:8px;">
+          <option value="">Semua Kategori</option>
+          <option value="Pengurus">Pengurus</option>
+          <option value="Bengkel Rekanan">Bengkel Rekanan</option>
+          <option value="Rumah Sakit">Rumah Sakit</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+        <button class="btn-outline" onclick="openSOSModal()">+ Tambah Kontak</button>
+      </div>
+      <div id="sosListContainer"></div>
     </div>
   </main>
 </div>
@@ -470,6 +488,29 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="sosModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="sosModalTitle">Tambah Kontak Darurat</h3>
+    <label>Nama Kontak</label>
+    <input type="text" id="sosNama" placeholder="Contoh: Bengkel Jaya Motor / Budi (Ketua)"/>
+    <label>Kategori</label>
+    <select id="sosKategori" style="width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; border-radius:8px;">
+      <option value="Pengurus">Pengurus</option>
+      <option value="Bengkel Rekanan">Bengkel Rekanan</option>
+      <option value="Rumah Sakit">Rumah Sakit</option>
+      <option value="Lainnya">Lainnya</option>
+    </select>
+    <label>Nomor Telepon</label>
+    <input type="text" id="sosNomor" placeholder="Contoh: 0812xxxxxxx"/>
+    <label>Keterangan (opsional)</label>
+    <input type="text" id="sosKeterangan" placeholder="Contoh: Buka 24 jam, area Cikondang"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeSOSModal()">Batal</button>
+      <button class="btn-solid" onclick="saveSOS()" id="saveSOSBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let allMembers = [];
 let activeTab = "pending";
@@ -490,6 +531,7 @@ let currentAdminId = null;
 let allRoleProfiles = [];
 let allBroadcastMembers = [];
 let allArsip = [];
+let allSOS = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -688,6 +730,7 @@ function switchSection(name) {
   document.getElementById('btnSectionRole').classList.toggle('active', name === 'role');
   document.getElementById('btnSectionBroadcast').classList.toggle('active', name === 'broadcast');
   document.getElementById('btnSectionArsip').classList.toggle('active', name === 'arsip');
+  document.getElementById('btnSectionSOS').classList.toggle('active', name === 'sos');
   document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
@@ -701,6 +744,7 @@ function switchSection(name) {
   document.getElementById('sectionRole').classList.toggle('hidden', name !== 'role');
   document.getElementById('sectionBroadcast').classList.toggle('hidden', name !== 'broadcast');
   document.getElementById('sectionArsip').classList.toggle('hidden', name !== 'arsip');
+  document.getElementById('sectionSOS').classList.toggle('hidden', name !== 'sos');
   document.getElementById('searchInput').value = '';
   if (name === 'dashboard') {
     loadDashboardStats();
@@ -731,6 +775,8 @@ function switchSection(name) {
     loadBroadcastMembers();
   } else if (name === 'arsip') {
     loadArsip();
+  } else if (name === 'sos') {
+    loadSOS();
   }
 }
 
@@ -2078,6 +2124,113 @@ async function deleteArsip(id, judul) {
   allArsip = allArsip.filter(x => x.id !== id);
   renderArsipList();
   showToast(`Dokumen "${judul}" dihapus`);
+}
+
+/* ===== KONTAK DARURAT ===== */
+async function loadSOS() {
+  document.getElementById('sosListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('kontak_darurat').select('*').order('urutan', { ascending: true });
+  if (error) {
+    document.getElementById('sosListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allSOS = data || [];
+  renderSOSList();
+}
+
+function renderSOSList() {
+  const search = (document.getElementById('sosSearchInput')?.value || '').toLowerCase();
+  const kategoriFilter = document.getElementById('sosKategoriFilter')?.value || '';
+  let filtered = allSOS;
+  if (kategoriFilter) filtered = filtered.filter(d => d.kategori === kategoriFilter);
+  if (search) filtered = filtered.filter(d => (d.nama || '').toLowerCase().includes(search));
+
+  const container = document.getElementById('sosListContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada kontak darurat. Klik "+ Tambah Kontak" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(d => `
+    <div class="member-card">
+      <div style="width:48px; height:48px; flex-shrink:0; border-radius:10px; background:var(--black-4); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">🆘</div>
+      <div style="min-width:220px;flex:1;">
+        <div class="nama">${escapeHtml(d.nama)}</div>
+        <div class="member-meta">
+          <span>🏷️ ${escapeHtml(d.kategori)}</span>
+          <span>📱 ${escapeHtml(d.nomor_telepon)}</span>
+        </div>
+        ${d.keterangan ? `<div class="member-saran">💬 ${escapeHtml(d.keterangan)}</div>` : ''}
+      </div>
+      <div class="action-row">
+        <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openSOSModal('${d.id}')" title="Edit">✎</button>
+        <button class="icon-btn delete" onclick="deleteSOS('${d.id}','${escapeHtml(d.nama)}')" title="Hapus">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openSOSModal(id) {
+  const modal = document.getElementById('sosModal');
+  modal.dataset.sosId = id || '';
+  if (id) {
+    const d = allSOS.find(x => x.id === id);
+    document.getElementById('sosModalTitle').textContent = 'Edit Kontak Darurat';
+    document.getElementById('sosNama').value = d.nama || '';
+    document.getElementById('sosKategori').value = d.kategori || 'Lainnya';
+    document.getElementById('sosNomor').value = d.nomor_telepon || '';
+    document.getElementById('sosKeterangan').value = d.keterangan || '';
+  } else {
+    document.getElementById('sosModalTitle').textContent = 'Tambah Kontak Darurat';
+    document.getElementById('sosNama').value = '';
+    document.getElementById('sosKategori').value = 'Pengurus';
+    document.getElementById('sosNomor').value = '';
+    document.getElementById('sosKeterangan').value = '';
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeSOSModal() {
+  document.getElementById('sosModal').classList.add('hidden');
+}
+
+async function saveSOS() {
+  const id = document.getElementById('sosModal').dataset.sosId;
+  const nama = document.getElementById('sosNama').value.trim();
+  const kategori = document.getElementById('sosKategori').value;
+  const nomorTelepon = document.getElementById('sosNomor').value.trim();
+  const keterangan = document.getElementById('sosKeterangan').value.trim();
+
+  if (!nama || !nomorTelepon) { showToast('Nama dan nomor telepon wajib diisi'); return; }
+
+  const btn = document.getElementById('saveSOSBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  const payload = { nama, kategori, nomor_telepon: nomorTelepon, keterangan };
+
+  try {
+    let error;
+    if (id) ({ error } = await supabaseClient.from('kontak_darurat').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('kontak_darurat').insert(payload));
+    if (error) throw error;
+    closeSOSModal();
+    showToast(id ? 'Kontak berhasil diperbarui' : 'Kontak berhasil ditambahkan');
+    loadSOS();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteSOS(id, nama) {
+  if (!confirm(`Hapus kontak "${nama}"?`)) return;
+  const { error } = await supabaseClient.from('kontak_darurat').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus kontak'); return; }
+  allSOS = allSOS.filter(x => x.id !== id);
+  renderSOSList();
+  showToast(`Kontak "${nama}" dihapus`);
 }
 
 async function openAttendanceModal(eventId) {
