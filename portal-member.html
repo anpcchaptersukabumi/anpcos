@@ -158,6 +158,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .nav-item:hover{color:var(--grey-l);background:rgba(255,255,255,0.03);}
 .nav-item.active{color:var(--gold);background:rgba(212,175,55,0.07);border-left-color:var(--gold);}
 .nav-icon{font-size:1rem;width:20px;text-align:center;}
+.nav-item-sos{color:#F87171;font-weight:700;background:rgba(239,68,68,0.06);
+  border-left-color:rgba(239,68,68,0.4);margin-bottom:4px;}
+.nav-item-sos:hover{color:#FCA5A5;background:rgba(239,68,68,0.1);}
 
 /* MAIN CONTENT */
 .main-content{margin-left:220px;flex:1;padding:2rem;}
@@ -597,6 +600,36 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
   text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:opacity 0.2s;}
 .arsip-download-btn:hover{opacity:0.88;}
 
+/* SOS DARURAT */
+.sos-warning-box{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);
+  border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.6rem;font-size:0.85rem;color:#FCA5A5;line-height:1.6;}
+.sos-id-box{background:var(--blk3);border:1px solid rgba(212,175,55,0.15);border-radius:12px;
+  padding:1.1rem 1.3rem;margin-bottom:1.8rem;display:flex;gap:2rem;flex-wrap:wrap;}
+.sos-id-item .label{font-size:0.68rem;color:var(--grey);text-transform:uppercase;letter-spacing:1px;}
+.sos-id-item .value{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;color:var(--gold);margin-top:2px;}
+.sos-section-title{font-family:'Cinzel',serif;font-weight:700;color:var(--white);
+  font-size:0.95rem;margin:1.6rem 0 1rem;display:flex;align-items:center;gap:8px;}
+.sos-nasional-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:0.5rem;}
+.sos-nasional-card{background:linear-gradient(160deg,rgba(239,68,68,0.12),var(--blk3));
+  border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:1rem;text-align:center;
+  text-decoration:none;display:block;transition:transform 0.15s;}
+.sos-nasional-card:active{transform:scale(0.97);}
+.sos-nasional-icon{font-size:1.6rem;margin-bottom:6px;}
+.sos-nasional-nama{font-weight:700;font-size:0.82rem;color:var(--grey-l);}
+.sos-nasional-nomor{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:1.3rem;color:#F87171;margin-top:2px;}
+.sos-kontak-card{display:flex;align-items:center;gap:14px;background:var(--blk3);
+  border:1px solid rgba(212,175,55,0.12);border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;flex-wrap:wrap;}
+.sos-kontak-info{flex:1;min-width:160px;}
+.sos-kontak-nama{font-weight:700;font-size:0.9rem;color:var(--grey-l);}
+.sos-kontak-meta{font-size:0.72rem;color:var(--grey);margin-top:3px;}
+.sos-kontak-actions{display:flex;gap:8px;}
+.sos-call-btn{background:#22C55E;color:#0d0d0d;border:none;font-weight:700;font-size:0.78rem;
+  padding:9px 14px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;
+  align-items:center;gap:5px;}
+.sos-wa-btn{background:#25D366;color:#0d0d0d;border:none;font-weight:700;font-size:0.78rem;
+  padding:9px 14px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;
+  align-items:center;gap:5px;}
+
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -620,6 +653,8 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 }
 .bottom-nav-item.active{color:var(--gold);}
 .bottom-nav-icon{font-size:1.1rem;}
+.bottom-nav-item-sos{color:#F87171;}
+.bottom-nav-item-sos.active{color:#F87171;}
 
 /* MORE MENU (mobile bottom sheet) */
 .more-menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:150;}
@@ -760,6 +795,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 
   <div class="layout">
     <aside class="sidebar">
+      <div class="nav-item nav-item-sos" data-page="sosPage" onclick="showPage('sosPage')">
+        <span class="nav-icon">🆘</span> SOS Darurat
+      </div>
       <div class="sidebar-section">Member</div>
       <div class="nav-item active" data-page="ktaPage" onclick="showPage('ktaPage')">
         <span class="nav-icon">🪪</span> KTA Digital
@@ -811,8 +849,8 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="bottom-nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="bottom-nav-icon">🏍️</span><span>Mileage</span>
       </div>
-      <div class="bottom-nav-item" data-page="kenalanPage" onclick="showPage('kenalanPage')">
-        <span class="bottom-nav-icon">👋</span><span>Kenalan</span>
+      <div class="bottom-nav-item bottom-nav-item-sos" data-page="sosPage" onclick="showPage('sosPage')">
+        <span class="bottom-nav-icon">🆘</span><span>SOS</span>
       </div>
       <div class="bottom-nav-item" id="moreNavBtn" onclick="toggleMoreMenu()">
         <span class="bottom-nav-icon">☰</span><span>Lainnya</span>
@@ -822,6 +860,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
     <div class="more-menu-overlay" id="moreMenuOverlay" onclick="closeMoreMenuOnBackdrop(event)">
       <div class="more-menu-sheet">
         <div class="more-menu-handle"></div>
+        <div class="more-menu-item" data-page="kenalanPage" onclick="showPage('kenalanPage'); closeMoreMenu();">
+          <span class="more-menu-icon">👋</span> Kenalan Yuk
+        </div>
         <div class="more-menu-item" data-page="profilPage" onclick="showPage('profilPage'); closeMoreMenu();">
           <span class="more-menu-icon">👤</span> Profil Saya
         </div>
@@ -1112,6 +1153,58 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         <div class="arsip-filter-row" id="arsipFilterRow"></div>
         <div id="arsipListPage">
           <div style="color:var(--grey);font-size:.9rem;padding:2rem 0;text-align:center;">Memuat dokumen...</div>
+        </div>
+      </div>
+
+      <!-- SOS DARURAT PAGE -->
+      <div class="page" id="sosPage">
+        <div class="page-header">
+          <div class="page-eyebrow" style="color:#F87171;">Bantuan Cepat</div>
+          <h1 class="page-title">SOS <span class="gold">DARURAT</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <div class="sos-warning-box">
+          🆘 Kondisi darurat di jalan? Tetap tenang. Pastikan posisi kamu aman dulu, baru hubungi kontak di bawah.
+        </div>
+        <div class="sos-id-box" id="sosIdBox">
+          <div class="sos-id-item">
+            <div class="label">No. Anggota</div>
+            <div class="value" id="sosMyNo">—</div>
+          </div>
+          <div class="sos-id-item">
+            <div class="label">Plat Motor</div>
+            <div class="value" id="sosMyPlat">—</div>
+          </div>
+        </div>
+        <p style="color:var(--grey); font-size:0.75rem; margin-top:-1.2rem; margin-bottom:1.4rem;">💡 Sebutin data ini pas nelpon, biar yang bantuin gampang identifikasi kamu.</p>
+
+        <div class="sos-section-title">☎️ Nomor Darurat Nasional</div>
+        <div class="sos-nasional-grid">
+          <a class="sos-nasional-card" href="tel:112">
+            <div class="sos-nasional-icon">🚨</div>
+            <div class="sos-nasional-nama">SOS Nasional</div>
+            <div class="sos-nasional-nomor">112</div>
+          </a>
+          <a class="sos-nasional-card" href="tel:110">
+            <div class="sos-nasional-icon">👮</div>
+            <div class="sos-nasional-nama">Polisi</div>
+            <div class="sos-nasional-nomor">110</div>
+          </a>
+          <a class="sos-nasional-card" href="tel:119">
+            <div class="sos-nasional-icon">🚑</div>
+            <div class="sos-nasional-nama">Ambulans</div>
+            <div class="sos-nasional-nomor">119</div>
+          </a>
+          <a class="sos-nasional-card" href="tel:113">
+            <div class="sos-nasional-icon">🚒</div>
+            <div class="sos-nasional-nama">Damkar</div>
+            <div class="sos-nasional-nomor">113</div>
+          </a>
+        </div>
+
+        <div class="sos-section-title">🏍️ Kontak Darurat ANPC</div>
+        <div id="sosKontakList">
+          <div style="color:var(--grey);font-size:.9rem;padding:1.5rem 0;text-align:center;">Memuat kontak...</div>
         </div>
       </div>
 
@@ -1422,7 +1515,7 @@ function showPage(pageId) {
   document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
-  const morePages = ['profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage', 'sertifikatPage', 'arsipPage'];
+  const morePages = ['kenalanPage', 'profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage', 'sertifikatPage', 'arsipPage'];
   if (morePages.includes(pageId)) {
     const moreBtn = document.getElementById('moreNavBtn');
     if (moreBtn) moreBtn.classList.add('active');
@@ -1436,6 +1529,7 @@ function showPage(pageId) {
   if (pageId === 'kasPage' && !kasLoaded) loadKasData();
   if (pageId === 'sertifikatPage' && !sertifikatLoaded) loadSertifikatData();
   if (pageId === 'arsipPage' && !arsipLoaded) loadArsipPage();
+  if (pageId === 'sosPage' && !sosLoaded) loadSOSPage();
 }
 
 function toggleMoreMenu() {
@@ -1639,6 +1733,7 @@ let allBadgesData = [];
 let kasLoaded = false;
 let sertifikatLoaded = false;
 let arsipLoaded = false;
+let sosLoaded = false;
 let allArsipPage = [];
 let arsipActiveKategori = '';
 let allKasData = [];
@@ -2530,6 +2625,55 @@ document.addEventListener('click', (e) => {
     panel.classList.add('hidden');
   }
 });
+
+/* ===== SOS DARURAT ===== */
+async function loadSOSPage() {
+  sosLoaded = true;
+  document.getElementById('sosMyNo').textContent = currentProfile?.no_anggota || 'PENDING';
+  try {
+    const { data } = await sb.from('garasi_kendaraan').select('nomor_polisi')
+      .eq('member_id', currentUser.id).order('created_at', { ascending: true }).limit(1);
+    document.getElementById('sosMyPlat').textContent = (data && data.length > 0) ? data[0].nomor_polisi : '-';
+  } catch (err) {
+    document.getElementById('sosMyPlat').textContent = '-';
+  }
+
+  const el = document.getElementById('sosKontakList');
+  try {
+    const { data, error } = await sb.from('kontak_darurat').select('*').order('urutan', { ascending: true });
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:1.5rem 0;text-align:center;">Belum ada kontak darurat dari pengurus.</div>';
+      return;
+    }
+    el.innerHTML = data.map(k => {
+      const waLink = formatWaLinkSOS(k.nomor_telepon);
+      return `
+        <div class="sos-kontak-card">
+          <div class="sos-kontak-info">
+            <div class="sos-kontak-nama">${escapeHtmlP(k.nama)}</div>
+            <div class="sos-kontak-meta">🏷️ ${escapeHtmlP(k.kategori)} · 📱 ${escapeHtmlP(k.nomor_telepon)}${k.keterangan ? ` · ${escapeHtmlP(k.keterangan)}` : ''}</div>
+          </div>
+          <div class="sos-kontak-actions">
+            <a class="sos-call-btn" href="tel:${k.nomor_telepon.replace(/[^0-9+]/g, '')}">📞 Telpon</a>
+            ${waLink ? `<a class="sos-wa-btn" href="${waLink}" target="_blank">💬 WA</a>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    el.innerHTML = '<div style="color:var(--grey);font-size:.9rem;padding:1.5rem 0;text-align:center;">Gagal memuat kontak darurat.</div>';
+  }
+}
+
+function formatWaLinkSOS(nomor) {
+  if (!nomor) return null;
+  let digits = nomor.replace(/[^0-9]/g, '');
+  if (!digits) return null;
+  if (digits.startsWith('0')) digits = '62' + digits.slice(1);
+  else if (!digits.startsWith('62')) digits = '62' + digits;
+  return `https://wa.me/${digits}`;
+}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
