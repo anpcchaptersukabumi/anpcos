@@ -658,6 +658,39 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
 .polling-bar-track{background:var(--blk4);border-radius:999px;height:10px;overflow:hidden;}
 .polling-bar-fill{background:var(--gold);height:100%;transition:width 0.4s;}
 
+/* MARKETPLACE */
+.mp-toolbar{display:flex;gap:10px;margin-bottom:1.4rem;flex-wrap:wrap;align-items:center;}
+.mp-tab-btn{background:var(--blk3);border:1px solid rgba(212,175,55,0.18);color:var(--grey-l);
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.8rem;padding:8px 16px;border-radius:8px;cursor:pointer;}
+.mp-tab-btn.active{background:var(--gold);color:var(--blk);border-color:var(--gold);}
+.mp-add-btn{background:linear-gradient(135deg,var(--red-b),var(--red));color:#fff;border:none;
+  font-weight:700;font-size:0.82rem;padding:9px 18px;border-radius:8px;cursor:pointer;margin-left:auto;}
+.mp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.mp-card{background:var(--blk3);border:1px solid rgba(212,175,55,0.12);border-radius:14px;
+  overflow:hidden;cursor:pointer;transition:border-color 0.2s;}
+.mp-card:hover{border-color:rgba(212,175,55,0.35);}
+.mp-photo{position:relative;aspect-ratio:1;background:var(--blk4);}
+.mp-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.mp-photo-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:rgba(212,175,55,0.25);}
+.mp-sold-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;
+  color:#F87171;font-weight:800;font-size:0.85rem;letter-spacing:1px;}
+.mp-info{padding:10px 12px;}
+.mp-judul{font-weight:700;font-size:0.84rem;color:var(--grey-l);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mp-harga{font-family:'Cinzel',serif;font-weight:700;font-size:0.92rem;color:var(--gold);margin-top:3px;}
+.mp-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:6px;}
+.mp-kondisi-badge{font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.25);white-space:nowrap;}
+.mp-seller{font-size:0.66rem;color:var(--grey);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mp-empty{grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--grey);
+  background:var(--blk3);border:1px dashed rgba(212,175,55,0.2);border-radius:14px;}
+.mp-detail-photo{width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--blk4);margin-bottom:1rem;}
+.mp-detail-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.mp-detail-photo .mp-photo-placeholder{font-size:3rem;}
+.mp-detail-harga{font-family:'Cinzel',serif;font-weight:700;font-size:1.4rem;color:var(--gold);margin:6px 0 10px;}
+.mp-detail-meta{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.mp-seller-box{background:var(--blk4);border-radius:10px;padding:12px 14px;margin:12px 0;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+
 .board-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem;color:var(--gold);
   flex-shrink:0;text-align:right;}
 .board-value span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;
@@ -843,6 +876,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
       <div class="nav-item" data-page="pollingPage" onclick="showPage('pollingPage')">
         <span class="nav-icon">🗳️</span> Polling & Voting
       </div>
+      <div class="nav-item" data-page="marketplacePage" onclick="showPage('marketplacePage')">
+        <span class="nav-icon">🛒</span> Marketplace
+      </div>
       <div class="nav-item" data-page="leaderPage" onclick="showPage('leaderPage')">
         <span class="nav-icon">🏍️</span> Seberapa ANPC
       </div>
@@ -896,6 +932,9 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
         <div class="more-menu-item" data-page="pollingPage" onclick="showPage('pollingPage'); closeMoreMenu();">
           <span class="more-menu-icon">🗳️</span> Polling & Voting
+        </div>
+        <div class="more-menu-item" data-page="marketplacePage" onclick="showPage('marketplacePage'); closeMoreMenu();">
+          <span class="more-menu-icon">🛒</span> Marketplace
         </div>
         <div class="more-menu-item" data-page="profilPage" onclick="showPage('profilPage'); closeMoreMenu();">
           <span class="more-menu-icon">👤</span> Profil Saya
@@ -1255,6 +1294,34 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
         </div>
       </div>
 
+      <!-- MARKETPLACE PAGE -->
+      <div class="page" id="marketplacePage">
+        <div class="page-header">
+          <div class="page-eyebrow">Jual Beli Member</div>
+          <h1 class="page-title">MARKET<span class="gold">PLACE</span></h1>
+          <div class="page-divider"></div>
+        </div>
+        <p style="color:var(--grey);font-size:0.85rem;max-width:520px;margin-bottom:1.4rem;">Lapak jual-beli spare part, aksesoris, sampe motor bekas — khusus antar member ANPC.</p>
+
+        <div class="mp-toolbar">
+          <button class="mp-tab-btn active" id="mpTabSemua" onclick="setMpTab('semua')">Semua</button>
+          <button class="mp-tab-btn" id="mpTabSaya" onclick="setMpTab('saya')">Punya Saya</button>
+          <select id="mpKategoriFilter" onchange="renderMarketplaceGrid()" style="background:var(--blk4); border:1px solid rgba(212,175,55,0.15); color:#fff; padding:8px 12px; font-family:'Rajdhani',sans-serif; font-size:0.8rem; border-radius:8px;">
+            <option value="">Semua Kategori</option>
+            <option value="Spare Part">Spare Part</option>
+            <option value="Aksesoris">Aksesoris</option>
+            <option value="Motor Bekas">Motor Bekas</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+          <button class="mp-add-btn" onclick="openMpFormModal()">+ Jual Barang</button>
+        </div>
+        <input type="text" class="f-input" id="mpSearchInput" placeholder="🔍 Cari barang..." oninput="renderMarketplaceGrid()" style="max-width:320px; margin-bottom:1.4rem;"/>
+
+        <div class="mp-grid" id="marketplaceGrid">
+          <div class="mp-empty">Memuat marketplace...</div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -1289,6 +1356,67 @@ select.f-input{cursor:pointer;-webkit-appearance:none;}
     <div style="margin-top:1.5rem; text-align:right;">
       <button class="modal-action-btn" onclick="closeEventDetail()">Tutup</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="mpFormModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+      <h3 id="mpFormModalTitle" style="font-family:'Cinzel',serif; color:var(--white); font-size:1.15rem;">Jual Barang</h3>
+      <button class="modal-close-btn" onclick="closeMpFormModal()">✕</button>
+    </div>
+    <div class="f-group" style="margin-top:1rem;">
+      <label class="f-label">Foto Barang</label>
+      <input type="file" class="f-input" id="mpFotoFile" accept="image/*" onchange="previewMpFoto(event)"/>
+      <img id="mpFotoPreview" class="hidden" style="width:100%; max-height:180px; object-fit:cover; margin-top:8px; border-radius:8px;"/>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Judul Barang</label>
+      <input type="text" class="f-input" id="mpJudul" placeholder="Contoh: Ban Michelin Ukuran 90/80-14"/>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Deskripsi</label>
+      <textarea class="f-input" id="mpDeskripsi" rows="3" placeholder="Kondisi barang, alasan jual, dll"></textarea>
+    </div>
+    <div class="f-row">
+      <div class="f-group">
+        <label class="f-label">Kategori</label>
+        <select class="f-input" id="mpKategori">
+          <option value="Spare Part">Spare Part</option>
+          <option value="Aksesoris">Aksesoris</option>
+          <option value="Motor Bekas">Motor Bekas</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Kondisi</label>
+        <select class="f-input" id="mpKondisi">
+          <option value="Bekas">Bekas</option>
+          <option value="Baru">Baru</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Harga (Rp)</label>
+      <input type="number" class="f-input" id="mpHarga" placeholder="0"/>
+    </div>
+    <div class="auth-err" id="mpFormErr"></div>
+    <button class="btn-save" id="mpSaveBtn" onclick="saveMarketplace()">Simpan</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="mpDetailModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+      <h3 id="mpDetailTitle" style="font-family:'Cinzel',serif; color:var(--white); font-size:1.1rem; flex:1;"></h3>
+      <button class="modal-close-btn" onclick="closeMpDetailModal()">✕</button>
+    </div>
+    <div class="mp-detail-photo" id="mpDetailPhoto"></div>
+    <div class="mp-detail-harga" id="mpDetailHarga"></div>
+    <div class="mp-detail-meta" id="mpDetailMeta"></div>
+    <p id="mpDetailDeskripsi" style="color:var(--grey-l); font-size:0.85rem; line-height:1.6;"></p>
+    <div class="mp-seller-box" id="mpSellerBox"></div>
+    <div id="mpDetailActions"></div>
   </div>
 </div>
 
@@ -1562,7 +1690,7 @@ function showPage(pageId) {
   document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   document.querySelectorAll('[data-page="' + pageId + '"]').forEach(n => n.classList.add('active'));
-  const morePages = ['kenalanPage', 'pollingPage', 'profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage', 'sertifikatPage', 'arsipPage'];
+  const morePages = ['kenalanPage', 'pollingPage', 'marketplacePage', 'profilPage', 'garasiPage', 'badgePage', 'pengurusPage', 'kasPage', 'sertifikatPage', 'arsipPage'];
   if (morePages.includes(pageId)) {
     const moreBtn = document.getElementById('moreNavBtn');
     if (moreBtn) moreBtn.classList.add('active');
@@ -1578,6 +1706,7 @@ function showPage(pageId) {
   if (pageId === 'arsipPage' && !arsipLoaded) loadArsipPage();
   if (pageId === 'sosPage' && !sosLoaded) loadSOSPage();
   if (pageId === 'pollingPage' && !pollingLoaded) loadPollingPage();
+  if (pageId === 'marketplacePage' && !marketplaceLoaded) loadMarketplace();
 }
 
 function toggleMoreMenu() {
@@ -1786,6 +1915,9 @@ let pollingLoaded = false;
 let allPollingData = [];
 let allPollingOpsi = [];
 let myVoteMap = {};
+let marketplaceLoaded = false;
+let allMarketplace = [];
+let mpActiveTab = 'semua';
 let allArsipPage = [];
 let arsipActiveKategori = '';
 let allKasData = [];
@@ -2837,6 +2969,202 @@ async function submitVote(pollId) {
   } catch (err) {
     showToast('Gagal vote: ' + err.message);
   }
+}
+
+/* ===== MARKETPLACE ===== */
+async function loadMarketplace() {
+  marketplaceLoaded = true;
+  const el = document.getElementById('marketplaceGrid');
+  try {
+    const { data, error } = await sb.from('marketplace').select('*, profiles(nama, whatsapp)').order('created_at', { ascending: false });
+    if (error) throw error;
+    allMarketplace = data || [];
+    renderMarketplaceGrid();
+  } catch (err) {
+    el.innerHTML = '<div class="mp-empty">Gagal memuat marketplace.</div>';
+  }
+}
+
+function setMpTab(tab) {
+  mpActiveTab = tab;
+  document.getElementById('mpTabSemua').classList.toggle('active', tab === 'semua');
+  document.getElementById('mpTabSaya').classList.toggle('active', tab === 'saya');
+  renderMarketplaceGrid();
+}
+
+function renderMarketplaceGrid() {
+  const el = document.getElementById('marketplaceGrid');
+  const search = (document.getElementById('mpSearchInput')?.value || '').toLowerCase();
+  const kategoriFilter = document.getElementById('mpKategoriFilter')?.value || '';
+
+  let filtered = allMarketplace;
+  if (mpActiveTab === 'saya') filtered = filtered.filter(m => m.member_id === currentUser.id);
+  if (kategoriFilter) filtered = filtered.filter(m => m.kategori === kategoriFilter);
+  if (search) filtered = filtered.filter(m => (m.judul || '').toLowerCase().includes(search));
+
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="mp-empty">${mpActiveTab === 'saya' ? 'Kamu belum posting barang apapun.' : 'Nggak ada barang yang cocok.'}</div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(m => {
+    const seller = m.profiles || {};
+    const isSold = m.status === 'terjual';
+    return `
+      <div class="mp-card" onclick="openMpDetail('${m.id}')">
+        <div class="mp-photo">
+          ${m.foto_url ? `<img src="${m.foto_url}" alt="${escapeHtmlP(m.judul)}"/>` : `<div class="mp-photo-placeholder">📦</div>`}
+          ${isSold ? `<div class="mp-sold-overlay">TERJUAL</div>` : ''}
+        </div>
+        <div class="mp-info">
+          <div class="mp-judul">${escapeHtmlP(m.judul)}</div>
+          <div class="mp-harga">Rp ${Number(m.harga).toLocaleString('id-ID')}</div>
+          <div class="mp-meta">
+            <span class="mp-kondisi-badge">${escapeHtmlP(m.kondisi)}</span>
+            <span class="mp-seller">${escapeHtmlP(seller.nama || '-')}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openMpDetail(id) {
+  const m = allMarketplace.find(x => x.id === id);
+  if (!m) return;
+  const seller = m.profiles || {};
+  const isOwn = m.member_id === currentUser.id;
+  const isSold = m.status === 'terjual';
+
+  document.getElementById('mpDetailTitle').textContent = m.judul;
+  document.getElementById('mpDetailPhoto').innerHTML = m.foto_url
+    ? `<img src="${m.foto_url}" alt="${escapeHtmlP(m.judul)}"/>`
+    : `<div class="mp-photo-placeholder">📦</div>`;
+  document.getElementById('mpDetailHarga').textContent = `Rp ${Number(m.harga).toLocaleString('id-ID')}`;
+  document.getElementById('mpDetailMeta').innerHTML = `
+    <span class="mp-kondisi-badge">${escapeHtmlP(m.kondisi)}</span>
+    <span class="mp-kondisi-badge" style="background:rgba(212,175,55,0.06);">${escapeHtmlP(m.kategori)}</span>
+    ${isSold ? '<span class="mp-kondisi-badge" style="color:#F87171;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);">Terjual</span>' : ''}
+  `;
+  document.getElementById('mpDetailDeskripsi').textContent = m.deskripsi || 'Nggak ada deskripsi tambahan.';
+
+  const waLink = formatWaLinkSOS(seller.whatsapp);
+  document.getElementById('mpSellerBox').innerHTML = `
+    <div>
+      <div style="font-size:0.7rem; color:var(--grey); text-transform:uppercase; letter-spacing:0.5px;">Penjual</div>
+      <div style="font-weight:700; color:var(--grey-l); font-size:0.9rem;">${escapeHtmlP(seller.nama || '-')}</div>
+    </div>
+    ${(!isOwn && waLink && !isSold) ? `<a class="sos-wa-btn" href="${waLink}?text=${encodeURIComponent('Halo, saya tertarik sama "' + m.judul + '" yang dijual di Marketplace ANPC.')}" target="_blank">💬 Chat Penjual</a>` : ''}
+  `;
+
+  const actionsEl = document.getElementById('mpDetailActions');
+  if (isOwn) {
+    actionsEl.innerHTML = `
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <button class="btn-outline" style="flex:1;" onclick="toggleMpStatus('${m.id}','${m.status}')">${isSold ? '↺ Tandai Tersedia Lagi' : '✓ Tandai Terjual'}</button>
+        <button class="btn-outline" style="flex:1; border-color:rgba(239,68,68,0.3); color:#F87171;" onclick="deleteMarketplace('${m.id}','${escapeHtmlP(m.judul)}')">🗑 Hapus</button>
+      </div>
+    `;
+  } else {
+    actionsEl.innerHTML = '';
+  }
+
+  document.getElementById('mpDetailModal').classList.remove('hidden');
+}
+
+function closeMpDetailModal() {
+  document.getElementById('mpDetailModal').classList.add('hidden');
+}
+
+function openMpFormModal() {
+  document.getElementById('mpFormModalTitle').textContent = 'Jual Barang';
+  document.getElementById('mpFotoFile').value = '';
+  document.getElementById('mpFotoPreview').classList.add('hidden');
+  document.getElementById('mpJudul').value = '';
+  document.getElementById('mpDeskripsi').value = '';
+  document.getElementById('mpKategori').value = 'Spare Part';
+  document.getElementById('mpKondisi').value = 'Bekas';
+  document.getElementById('mpHarga').value = '';
+  document.getElementById('mpFormErr').style.display = 'none';
+  document.getElementById('mpFormModal').classList.remove('hidden');
+}
+
+function closeMpFormModal() {
+  document.getElementById('mpFormModal').classList.add('hidden');
+}
+
+function previewMpFoto(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('mpFotoPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+}
+
+async function uploadMpFoto(file) {
+  const ext = file.name.split('.').pop();
+  const filePath = `${currentUser.id}/${Date.now()}.${ext}`;
+  const { error } = await sb.storage.from('marketplace-images').upload(filePath, file);
+  if (error) throw error;
+  const { data } = sb.storage.from('marketplace-images').getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
+async function saveMarketplace() {
+  const judul = document.getElementById('mpJudul').value.trim();
+  const deskripsi = document.getElementById('mpDeskripsi').value.trim();
+  const kategori = document.getElementById('mpKategori').value;
+  const kondisi = document.getElementById('mpKondisi').value;
+  const harga = parseFloat(document.getElementById('mpHarga').value) || 0;
+  const fotoFile = document.getElementById('mpFotoFile').files[0];
+  const errEl = document.getElementById('mpFormErr');
+  errEl.style.display = 'none';
+
+  if (!judul) { errEl.textContent = 'Judul barang wajib diisi.'; errEl.style.display = 'block'; return; }
+  if (harga <= 0) { errEl.textContent = 'Harga wajib diisi.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('mpSaveBtn');
+  btn.disabled = true;
+  btn.textContent = fotoFile ? 'Mengunggah foto...' : 'Menyimpan...';
+
+  const payload = { judul, deskripsi, kategori, kondisi, harga, member_id: currentUser.id };
+
+  try {
+    if (fotoFile) payload.foto_url = await uploadMpFoto(fotoFile);
+    const { error } = await sb.from('marketplace').insert(payload);
+    if (error) throw error;
+    closeMpFormModal();
+    showToast('✓ Barang berhasil diposting');
+    marketplaceLoaded = false;
+    loadMarketplace();
+  } catch (err) {
+    errEl.textContent = 'Gagal menyimpan: ' + err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function toggleMpStatus(id, currentStatus) {
+  const newStatus = currentStatus === 'tersedia' ? 'terjual' : 'tersedia';
+  const { error } = await sb.from('marketplace').update({ status: newStatus }).eq('id', id);
+  if (error) { showToast('Gagal mengubah status'); return; }
+  const m = allMarketplace.find(x => x.id === id);
+  if (m) m.status = newStatus;
+  closeMpDetailModal();
+  renderMarketplaceGrid();
+  showToast(newStatus === 'terjual' ? 'Ditandai terjual' : 'Ditandai tersedia lagi');
+}
+
+async function deleteMarketplace(id, judul) {
+  if (!confirm(`Hapus listing "${judul}"?`)) return;
+  const { error } = await sb.from('marketplace').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus listing'); return; }
+  allMarketplace = allMarketplace.filter(x => x.id !== id);
+  closeMpDetailModal();
+  renderMarketplaceGrid();
+  showToast('Listing dihapus');
 }
 
 function showToast(msg) {
