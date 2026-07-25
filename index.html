@@ -52,6 +52,7 @@ a { text-decoration: none; }
 .nav-links a { color: var(--grey-light); font-weight:600; font-size:0.82rem; letter-spacing:1.5px; text-transform:uppercase; transition: color 0.2s; }
 .nav-links a:hover { color: var(--gold); }
 .btn-nav { display:flex; align-items:center; gap:8px; background: transparent; border: 1px solid var(--gold); color: var(--gold) !important; padding: 9px 22px; font-weight:700 !important; letter-spacing:1.5px; transition: all 0.25s; }
+.btn-icon { width:16px; height:16px; object-fit:contain; flex-shrink:0; }
 .btn-nav:hover { background: var(--gold); color: var(--black) !important; }
 .nav-toggle { display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:5px; }
 .nav-toggle span { width:26px; height:2px; background:var(--gold); }
@@ -217,7 +218,7 @@ footer { background: var(--black-2); border-top: 1px solid rgba(212,175,55,0.12)
     <li><a href="#gallery">Galeri</a></li>
     <li><a href="#registrasi">Registrasi</a></li>
     <li><a href="#kontak">Kontak</a></li>
-    <li><a href="portal-member.html" class="btn-nav">👤 Portal Member</a></li>
+    <li><a href="portal-member.html" class="btn-nav"><img src="icon-kta.png" class="btn-icon" alt=""/> Portal Member</a></li>
   </ul>
   <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
 </nav>
@@ -234,7 +235,7 @@ footer { background: var(--black-2); border-top: 1px solid rgba(212,175,55,0.12)
       <div class="hero-motto">Brotherhood &nbsp;&bull;&nbsp; Respect &nbsp;&bull;&nbsp; Solidarity</div>
       <p class="hero-desc">Kami bukan sekedar komunitas, kami adalah keluarga. Satu hati, satu tujuan, membawa nama baik ANPC Chapter Sukabumi di setiap perjalanan.</p>
       <div class="hero-cta">
-        <a href="#registrasi" class="btn-primary">🪪 Daftar Member</a>
+        <a href="#registrasi" class="btn-primary"><img src="icon-kta.png" class="btn-icon" alt=""/> Daftar Member</a>
         <a href="#activities" class="btn-outline">Lihat Kegiatan ▸</a>
       </div>
     </div>
