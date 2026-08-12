@@ -914,7 +914,7 @@ async function loadProfiles() {
     document.getElementById('profileListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
     return;
   }
-  allProfiles = (data || []).filter(p => !['admin', 'pengurus'].includes(p.role));
+  allProfiles = data || [];
   renderProfileTabs();
   renderProfileList();
 }
