@@ -39,6 +39,41 @@ body { background: var(--black); color: var(--white); font-family: 'Rajdhani', s
 @media (max-width: 768px) {
   .music-toggle { width: 46px; height: 46px; font-size: 1.1rem; bottom: 20px; left: 16px; }
 }
+.music-playlist-btn {
+  position: fixed; bottom: 24px; left: 84px; z-index: 999;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--black-3); border: 1.5px solid rgba(212,175,55,0.3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 1rem; color: var(--gold);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.music-playlist-btn:hover { transform: scale(1.08); border-color: var(--gold); }
+.music-playlist-panel {
+  position: fixed; bottom: 84px; left: 24px; z-index: 999;
+  background: var(--black-2); border: 1px solid rgba(212,175,55,0.25);
+  border-radius: 12px; padding: 10px; width: 230px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+}
+.music-playlist-panel.hidden { display: none; }
+.music-playlist-title {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.7rem;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--grey-light);
+  margin-bottom: 8px; padding: 0 4px;
+}
+.music-playlist-item {
+  display: flex; align-items: center; gap: 8px; padding: 9px 8px;
+  border-radius: 8px; cursor: pointer; font-size: 0.82rem; color: var(--white);
+  transition: background 0.2s;
+}
+.music-playlist-item:hover { background: rgba(212,175,55,0.08); }
+.music-playlist-item.active { background: rgba(212,175,55,0.12); color: var(--gold); font-weight: 700; }
+.music-playlist-check { margin-left: auto; opacity: 0; }
+.music-playlist-item.active .music-playlist-check { opacity: 1; }
+@media (max-width: 768px) {
+  .music-playlist-btn { width: 34px; height: 34px; font-size: 0.85rem; bottom: 20px; left: 66px; }
+  .music-playlist-panel { bottom: 78px; left: 16px; width: 200px; }
+}
 ::-webkit-scrollbar { width: 7px; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(var(--gold), var(--red)); border-radius: 4px; }
 img { max-width: 100%; display: block; }
@@ -420,9 +455,12 @@ footer { background: var(--black-2); border-top: 1px solid rgba(212,175,55,0.12)
 </div>
 
 <button class="music-toggle" id="musicToggle" title="Putar musik" aria-label="Putar/hentikan musik">🔇</button>
-<audio id="bgMusic" loop preload="auto">
-  <source src="background-music.mpeg">
-</audio>
+<button class="music-playlist-btn" id="musicPlaylistBtn" title="Pilih lagu" aria-label="Pilih lagu">🎵</button>
+<div class="music-playlist-panel hidden" id="musicPlaylistPanel">
+  <div class="music-playlist-title">Pilih Lagu</div>
+  <div id="musicPlaylistItems"></div>
+</div>
+<audio id="bgMusic" loop preload="auto"></audio>
 
 <script>
 window.addEventListener('scroll', () => document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40));
@@ -597,22 +635,56 @@ async function loadGaleriPublic() {
 loadKegiatanKami();
 loadGaleriPublic();
 
-/* ===== Musik Latar ===== */
+/* ===== Musik Latar (Playlist) ===== */
 (function() {
   const audio = document.getElementById('bgMusic');
   const btn = document.getElementById('musicToggle');
+  const playlistBtn = document.getElementById('musicPlaylistBtn');
+  const playlistPanel = document.getElementById('musicPlaylistPanel');
+  const playlistItemsContainer = document.getElementById('musicPlaylistItems');
   if (!audio || !btn) return;
+
+  // Satu-satunya sumber data playlist — tambah/kurang lagu cukup edit array ini,
+  // panel & audio otomatis nyesuain, nggak akan pernah "kegeser"/nggak sinkron.
+  const tracks = [
+    { name: 'Satu Hati Satu Tujuan', file: 'background-music.mpeg' },
+    { name: 'Melaju Bersama', file: 'background-music-2.mpeg' },
+    { name: 'Duduk Sama Rendah, Berdiri Sama Tinggi', file: 'background-music-3.mpeg' },
+  ];
+
+  // Generate isi panel dari data di atas (bukan hardcode HTML terpisah)
+  playlistItemsContainer.innerHTML = tracks.map((t, i) => `
+    <div class="music-playlist-item" data-index="${i}">
+      <span>🎶</span><span>${t.name}</span><span class="music-playlist-check">✓</span>
+    </div>
+  `).join('');
 
   audio.volume = 0.5;
   audio.addEventListener('error', () => {
     console.error('Musik gagal dimuat/diputar. Kemungkinan format file bermasalah. Kode error:', audio.error ? audio.error.code : 'unknown');
   });
+
   let isPlaying = false;
+  let currentIndex = parseInt(localStorage.getItem('anpcMusicTrackIndex') || '0', 10);
+  if (isNaN(currentIndex) || currentIndex < 0 || currentIndex >= tracks.length) currentIndex = 0;
   const wantsToPlay = localStorage.getItem('anpcMusicPlaying') === 'true';
+
+  function setSource(index) {
+    audio.src = tracks[index].file;
+    audio.load();
+  }
 
   function updateBtn() {
     btn.textContent = isPlaying ? '🔊' : '🔇';
     btn.classList.toggle('playing', isPlaying);
+    btn.title = isPlaying ? `Sedang muter: ${tracks[currentIndex].name}` : 'Putar musik';
+  }
+
+  function updatePlaylistUI() {
+    document.querySelectorAll('.music-playlist-item').forEach((item) => {
+      const i = parseInt(item.dataset.index, 10);
+      item.classList.toggle('active', i === currentIndex);
+    });
   }
 
   async function playMusic() {
@@ -634,10 +706,46 @@ loadGaleriPublic();
     updateBtn();
   }
 
+  function selectTrack(index) {
+    playlistPanel.classList.add('hidden');
+    if (index === currentIndex) {
+      if (!isPlaying) playMusic();
+      return;
+    }
+    currentIndex = index;
+    localStorage.setItem('anpcMusicTrackIndex', String(currentIndex));
+    setSource(currentIndex);
+    updatePlaylistUI();
+    playMusic();
+  }
+
   btn.addEventListener('click', () => {
     if (isPlaying) pauseMusic();
     else playMusic();
   });
+
+  playlistBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    playlistPanel.classList.toggle('hidden');
+  });
+
+  // Event delegation — tetep kepasang biar pun daftar lagu di-generate ulang
+  playlistItemsContainer.addEventListener('click', (e) => {
+    const item = e.target.closest('.music-playlist-item');
+    if (!item) return;
+    selectTrack(parseInt(item.dataset.index, 10));
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!playlistPanel.classList.contains('hidden')) {
+      if (!playlistPanel.contains(e.target) && e.target !== playlistBtn) {
+        playlistPanel.classList.add('hidden');
+      }
+    }
+  });
+
+  setSource(currentIndex);
+  updatePlaylistUI();
 
   // Kalau sebelumnya user nyalain musik, coba lanjut otomatis saat halaman dibuka lagi.
   // Kalau browser blokir (karena belum ada sentuhan user di halaman ini),
