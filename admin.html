@@ -151,6 +151,7 @@
       <button class="section-btn" id="btnSectionRetensi" onclick="switchSection('retensi')">📉 Retensi Member</button>
       <button class="section-btn" id="btnSectionPolling" onclick="switchSection('polling')">🗳️ Polling & Voting</button>
       <button class="section-btn" id="btnSectionMarketplace" onclick="switchSection('marketplace')">🛒 Marketplace</button>
+      <button class="section-btn" id="btnSectionKabar" onclick="switchSection('kabar')">📰 Kabar & Info</button>
     </div>
 
     <div id="sectionDashboard">
@@ -187,7 +188,7 @@
 
     <div id="sectionGaleri" class="hidden">
       <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
-        <button class="btn-outline" onclick="openGaleriModal()">+ Tambah Foto</button>
+        <button class="btn-outline" onclick="openGaleriModal()">+ Tambah Media</button>
       </div>
       <div id="galeriListContainer" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px;"></div>
     </div>
@@ -316,6 +317,13 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
       </div>
       <div id="marketplaceAdminContainer"></div>
     </div>
+
+    <div id="sectionKabar" class="hidden">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1.6rem;">
+        <button class="btn-outline" onclick="openKabarModal()">+ Tambah Kabar</button>
+      </div>
+      <div id="kabarListContainer"></div>
+    </div>
   </main>
 </div>
 
@@ -400,10 +408,12 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
 
 <div class="modal-overlay hidden" id="galeriModal">
   <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
-    <h3 id="galeriModalTitle">Tambah Foto Galeri</h3>
-    <label>Foto</label>
-    <input type="file" id="galeriFoto" accept="image/*" onchange="previewGaleriFoto(event)"/>
+    <h3 id="galeriModalTitle">Tambah Media Galeri</h3>
+    <label>Foto atau Video</label>
+    <input type="file" id="galeriFoto" accept="image/*,video/*" onchange="previewGaleriFoto(event)"/>
+    <p style="color:var(--grey); font-size:0.75rem; margin-top:6px;">💡 Video maksimal disaranin di bawah 30MB biar nggak berat pas dibuka member.</p>
     <img id="galeriFotoPreview" class="hidden" style="width:100%; max-height:160px; object-fit:cover; margin-top:8px;"/>
+    <video id="galeriVideoPreview" class="hidden" controls style="width:100%; max-height:200px; margin-top:8px; background:#000;"></video>
     <label>Keterangan (opsional)</label>
     <input type="text" id="galeriKeterangan" placeholder="Contoh: Kopdar Sukabumi Juli 2026"/>
     <label>Event Terkait (opsional)</label>
@@ -572,6 +582,27 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="kabarModal">
+  <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+    <h3 id="kabarModalTitle">Tambah Kabar</h3>
+    <label>Foto (opsional)</label>
+    <input type="file" id="kabarFoto" accept="image/*" onchange="previewKabarFoto(event)"/>
+    <img id="kabarFotoPreview" class="hidden" style="width:100%; max-height:160px; object-fit:cover; margin-top:8px; border-radius:8px;"/>
+    <label>Kategori</label>
+    <input type="text" id="kabarKategori" placeholder="Contoh: INFO ANPC, AGENDA, PENGUMUMAN" value="INFO ANPC"/>
+    <label>Judul</label>
+    <input type="text" id="kabarJudul" placeholder="Contoh: Sunmori Bulan Depan"/>
+    <label>Isi Kabar</label>
+    <textarea id="kabarKonten" rows="6" style="width:100%; background:var(--black-4); border:1px solid rgba(212,175,55,0.18); color:#fff; padding:11px 13px; font-family:'Rajdhani',sans-serif; font-size:1rem; border-radius:8px;" placeholder="Isi lengkap kabar/pengumuman..."></textarea>
+    <label>Urutan Tampil (angka kecil tampil duluan)</label>
+    <input type="number" id="kabarUrutan" placeholder="0"/>
+    <div class="action-buttons">
+      <button class="btn-outline" onclick="closeKabarModal()">Batal</button>
+      <button class="btn-solid" onclick="saveKabar()" id="saveKabarBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let allMembers = [];
 let activeTab = "pending";
@@ -597,6 +628,7 @@ let allRetensi = [];
 let allPolling = [];
 let pollingOpsiDraft = [];
 let allMarketplaceAdmin = [];
+let allKabar = [];
 
 async function checkLogin() {
   const email = document.getElementById('adminEmail').value.trim();
@@ -799,6 +831,7 @@ function switchSection(name) {
   document.getElementById('btnSectionRetensi').classList.toggle('active', name === 'retensi');
   document.getElementById('btnSectionPolling').classList.toggle('active', name === 'polling');
   document.getElementById('btnSectionMarketplace').classList.toggle('active', name === 'marketplace');
+  document.getElementById('btnSectionKabar').classList.toggle('active', name === 'kabar');
   document.getElementById('sectionDashboard').classList.toggle('hidden', name !== 'dashboard');
   document.getElementById('sectionMembers').classList.toggle('hidden', name !== 'members');
   document.getElementById('sectionProfiles').classList.toggle('hidden', name !== 'profiles');
@@ -816,6 +849,7 @@ function switchSection(name) {
   document.getElementById('sectionRetensi').classList.toggle('hidden', name !== 'retensi');
   document.getElementById('sectionPolling').classList.toggle('hidden', name !== 'polling');
   document.getElementById('sectionMarketplace').classList.toggle('hidden', name !== 'marketplace');
+  document.getElementById('sectionKabar').classList.toggle('hidden', name !== 'kabar');
   document.getElementById('searchInput').value = '';
   if (name === 'dashboard') {
     loadDashboardStats();
@@ -854,6 +888,8 @@ function switchSection(name) {
     loadPolling();
   } else if (name === 'marketplace') {
     loadMarketplaceAdmin();
+  } else if (name === 'kabar') {
+    loadKabar();
   }
 }
 
@@ -1384,14 +1420,19 @@ function populateGaleriEventDropdown() {
 function renderGaleriList() {
   const container = document.getElementById('galeriListContainer');
   if (allGaleri.length === 0) {
-    container.innerHTML = '<div class="empty-state">Belum ada foto galeri. Klik "+ Tambah Foto" untuk mulai.</div>';
+    container.innerHTML = '<div class="empty-state">Belum ada media galeri. Klik "+ Tambah Media" untuk mulai.</div>';
     return;
   }
   container.innerHTML = allGaleri.map(g => {
     const ev = g.event_id ? allEvents.find(e => e.id === g.event_id) : null;
+    const isVideo = g.tipe === 'video';
+    const mediaHtml = isVideo
+      ? `<video src="${g.foto_url}" style="width:100%; aspect-ratio:1; object-fit:cover; display:block; background:#000;" muted></video>`
+      : `<img src="${g.foto_url}" style="width:100%; aspect-ratio:1; object-fit:cover; display:block;"/>`;
     return `
-    <div style="background:var(--black-3); border:1px solid rgba(212,175,55,0.1); border-radius:12px; overflow:hidden;">
-      <img src="${g.foto_url}" style="width:100%; aspect-ratio:1; object-fit:cover; display:block;"/>
+    <div style="background:var(--black-3); border:1px solid rgba(212,175,55,0.1); border-radius:12px; overflow:hidden; position:relative;">
+      ${mediaHtml}
+      ${isVideo ? `<div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.65); color:var(--gold); font-size:0.65rem; font-weight:700; padding:3px 8px; border-radius:6px;">▶ VIDEO</div>` : ''}
       <div style="padding:8px 10px;">
         ${ev ? `<div style="font-size:0.66rem; color:var(--gold); font-weight:700; margin-bottom:4px;">🏍️ ${escapeHtml(ev.nama)}</div>` : ''}
         <div style="font-size:0.75rem; color:var(--grey-light); margin-bottom:6px; min-height:1.2em;">${g.keterangan ? escapeHtml(g.keterangan) : ''}</div>
@@ -1408,9 +1449,18 @@ function renderGaleriList() {
 function previewGaleriFoto(evt) {
   const file = evt.target.files[0];
   if (!file) return;
-  const preview = document.getElementById('galeriFotoPreview');
-  preview.src = URL.createObjectURL(file);
-  preview.classList.remove('hidden');
+  const imgPreview = document.getElementById('galeriFotoPreview');
+  const videoPreview = document.getElementById('galeriVideoPreview');
+  const url = URL.createObjectURL(file);
+  if (file.type.startsWith('video/')) {
+    videoPreview.src = url;
+    videoPreview.classList.remove('hidden');
+    imgPreview.classList.add('hidden');
+  } else {
+    imgPreview.src = url;
+    imgPreview.classList.remove('hidden');
+    videoPreview.classList.add('hidden');
+  }
 }
 
 async function uploadGaleriImage(file) {
@@ -1426,21 +1476,30 @@ function openGaleriModal(id) {
   const modal = document.getElementById('galeriModal');
   modal.dataset.galeriId = id || '';
   document.getElementById('galeriFoto').value = '';
-  const preview = document.getElementById('galeriFotoPreview');
+  const imgPreview = document.getElementById('galeriFotoPreview');
+  const videoPreview = document.getElementById('galeriVideoPreview');
   if (id) {
     const g = allGaleri.find(x => x.id === id);
-    document.getElementById('galeriModalTitle').textContent = 'Edit Foto Galeri';
+    document.getElementById('galeriModalTitle').textContent = 'Edit Media Galeri';
     document.getElementById('galeriKeterangan').value = g.keterangan || '';
     document.getElementById('galeriEvent').value = g.event_id || '';
     document.getElementById('galeriUrutan').value = g.urutan ?? 0;
-    if (g.foto_url) { preview.src = g.foto_url; preview.classList.remove('hidden'); }
-    else { preview.classList.add('hidden'); }
+    if (g.foto_url && g.tipe === 'video') {
+      videoPreview.src = g.foto_url; videoPreview.classList.remove('hidden');
+      imgPreview.classList.add('hidden');
+    } else if (g.foto_url) {
+      imgPreview.src = g.foto_url; imgPreview.classList.remove('hidden');
+      videoPreview.classList.add('hidden');
+    } else {
+      imgPreview.classList.add('hidden'); videoPreview.classList.add('hidden');
+    }
   } else {
-    document.getElementById('galeriModalTitle').textContent = 'Tambah Foto Galeri';
+    document.getElementById('galeriModalTitle').textContent = 'Tambah Media Galeri';
     document.getElementById('galeriKeterangan').value = '';
     document.getElementById('galeriEvent').value = '';
     document.getElementById('galeriUrutan').value = allGaleri.length;
-    preview.classList.add('hidden');
+    imgPreview.classList.add('hidden');
+    videoPreview.classList.add('hidden');
   }
   modal.classList.remove('hidden');
 }
@@ -1456,22 +1515,25 @@ async function saveGaleri() {
   const urutan = parseInt(document.getElementById('galeriUrutan').value) || 0;
   const fotoFile = document.getElementById('galeriFoto').files[0];
 
-  if (!id && !fotoFile) { showToast('Foto wajib diunggah'); return; }
+  if (!id && !fotoFile) { showToast('Foto/video wajib diunggah'); return; }
 
   const btn = document.getElementById('saveGaleriBtn');
   btn.disabled = true;
-  btn.textContent = fotoFile ? 'Mengunggah foto...' : 'Menyimpan...';
+  btn.textContent = fotoFile ? 'Mengunggah...' : 'Menyimpan...';
 
   const payload = { keterangan, event_id: eventId, urutan };
 
   try {
-    if (fotoFile) payload.foto_url = await uploadGaleriImage(fotoFile);
+    if (fotoFile) {
+      payload.foto_url = await uploadGaleriImage(fotoFile);
+      payload.tipe = fotoFile.type.startsWith('video/') ? 'video' : 'foto';
+    }
     let error;
     if (id) ({ error } = await supabaseClient.from('galeri').update(payload).eq('id', id));
     else ({ error } = await supabaseClient.from('galeri').insert(payload));
     if (error) throw error;
     closeGaleriModal();
-    showToast(id ? 'Foto berhasil diperbarui' : 'Foto berhasil ditambahkan');
+    showToast(id ? 'Media berhasil diperbarui' : 'Media berhasil ditambahkan');
     loadGaleri();
   } catch (err) {
     showToast('Gagal menyimpan: ' + err.message);
@@ -2653,6 +2715,134 @@ async function deleteMarketplaceAdmin(id, judul) {
   allMarketplaceAdmin = allMarketplaceAdmin.filter(x => x.id !== id);
   renderMarketplaceAdminList();
   showToast(`Listing "${judul}" dihapus`);
+}
+
+/* ===== KABAR & INFO ===== */
+async function loadKabar() {
+  document.getElementById('kabarListContainer').innerHTML = '<div class="loading-state">Memuat data...</div>';
+  const { data, error } = await supabaseClient.from('kabar_info').select('*').order('urutan', { ascending: true });
+  if (error) {
+    document.getElementById('kabarListContainer').innerHTML = `<div class="empty-state">Gagal memuat data: ${error.message}</div>`;
+    return;
+  }
+  allKabar = data || [];
+  renderKabarList();
+}
+
+function renderKabarList() {
+  const container = document.getElementById('kabarListContainer');
+  if (allKabar.length === 0) {
+    container.innerHTML = '<div class="empty-state">Belum ada kabar/info. Klik "+ Tambah Kabar" untuk mulai.</div>';
+    return;
+  }
+  container.innerHTML = allKabar.map(k => {
+    const tanggalFmt = new Date(k.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `
+    <div class="member-card">
+      ${k.foto_url ? `<img src="${k.foto_url}" style="width:56px; height:56px; object-fit:cover; flex-shrink:0; border-radius:10px;"/>` : `<div style="width:56px;height:56px;flex-shrink:0;border-radius:10px;background:var(--black-4);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">📰</div>`}
+      <div style="min-width:220px;flex:1;">
+        <div class="nama">${escapeHtml(k.judul)}</div>
+        <div class="member-meta">
+          <span>🏷️ ${escapeHtml(k.kategori)}</span>
+          <span>📅 ${tanggalFmt}</span>
+        </div>
+        <div class="member-saran">${escapeHtml((k.konten || '').slice(0, 100))}${k.konten && k.konten.length > 100 ? '...' : ''}</div>
+      </div>
+      <div class="action-row">
+        <button class="icon-btn" style="border-color:rgba(212,175,55,0.4); color:var(--gold); background:rgba(212,175,55,0.08);" onclick="openKabarModal('${k.id}')" title="Edit">✎</button>
+        <button class="icon-btn delete" onclick="deleteKabar('${k.id}','${escapeHtml(k.judul)}')" title="Hapus">🗑</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function previewKabarFoto(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('kabarFotoPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+}
+
+async function uploadKabarFoto(file) {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const { error } = await supabaseClient.storage.from('kabar-info-images').upload(fileName, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from('kabar-info-images').getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
+function openKabarModal(id) {
+  const modal = document.getElementById('kabarModal');
+  modal.dataset.kabarId = id || '';
+  document.getElementById('kabarFoto').value = '';
+  const preview = document.getElementById('kabarFotoPreview');
+  if (id) {
+    const k = allKabar.find(x => x.id === id);
+    document.getElementById('kabarModalTitle').textContent = 'Edit Kabar';
+    document.getElementById('kabarKategori').value = k.kategori || 'INFO ANPC';
+    document.getElementById('kabarJudul').value = k.judul || '';
+    document.getElementById('kabarKonten').value = k.konten || '';
+    document.getElementById('kabarUrutan').value = k.urutan ?? 0;
+    if (k.foto_url) { preview.src = k.foto_url; preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  } else {
+    document.getElementById('kabarModalTitle').textContent = 'Tambah Kabar';
+    document.getElementById('kabarKategori').value = 'INFO ANPC';
+    document.getElementById('kabarJudul').value = '';
+    document.getElementById('kabarKonten').value = '';
+    document.getElementById('kabarUrutan').value = allKabar.length;
+    preview.classList.add('hidden');
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeKabarModal() {
+  document.getElementById('kabarModal').classList.add('hidden');
+}
+
+async function saveKabar() {
+  const id = document.getElementById('kabarModal').dataset.kabarId;
+  const kategori = document.getElementById('kabarKategori').value.trim() || 'INFO ANPC';
+  const judul = document.getElementById('kabarJudul').value.trim();
+  const konten = document.getElementById('kabarKonten').value.trim();
+  const urutan = parseInt(document.getElementById('kabarUrutan').value) || 0;
+  const fotoFile = document.getElementById('kabarFoto').files[0];
+
+  if (!judul || !konten) { showToast('Judul dan isi kabar wajib diisi'); return; }
+
+  const btn = document.getElementById('saveKabarBtn');
+  btn.disabled = true;
+  btn.textContent = fotoFile ? 'Mengunggah...' : 'Menyimpan...';
+
+  const payload = { kategori, judul, konten, urutan };
+
+  try {
+    if (fotoFile) payload.foto_url = await uploadKabarFoto(fotoFile);
+    let error;
+    if (id) ({ error } = await supabaseClient.from('kabar_info').update(payload).eq('id', id));
+    else ({ error } = await supabaseClient.from('kabar_info').insert(payload));
+    if (error) throw error;
+    closeKabarModal();
+    showToast(id ? 'Kabar berhasil diperbarui' : 'Kabar berhasil ditambahkan');
+    loadKabar();
+  } catch (err) {
+    showToast('Gagal menyimpan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteKabar(id, judul) {
+  if (!confirm(`Hapus kabar "${judul}"?`)) return;
+  const { error } = await supabaseClient.from('kabar_info').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus kabar'); return; }
+  allKabar = allKabar.filter(x => x.id !== id);
+  renderKabarList();
+  showToast(`Kabar "${judul}" dihapus`);
 }
 
 async function openAttendanceModal(eventId) {
