@@ -411,7 +411,7 @@ Ada info penting nih dari ANPC Chapter Sukabumi. </textarea>
     <h3 id="galeriModalTitle">Tambah Media Galeri</h3>
     <label>Foto atau Video</label>
     <input type="file" id="galeriFoto" accept="image/*,video/*" onchange="previewGaleriFoto(event)"/>
-    <p style="color:var(--grey); font-size:0.75rem; margin-top:6px;">💡 Video maksimal 150MB. Video yang lebih kecil bakal lebih cepet dibuka member.</p>
+    <p style="color:var(--grey); font-size:0.75rem; margin-top:6px;">💡 Video maksimal <b>50MB</b> (batas dari paket hosting database yang dipakai). Kompres dulu kalau videonya lebih besar.</p>
     <img id="galeriFotoPreview" class="hidden" style="width:100%; max-height:160px; object-fit:cover; margin-top:8px;"/>
     <video id="galeriVideoPreview" class="hidden" controls style="width:100%; max-height:200px; margin-top:8px; background:#000;"></video>
     <label>Keterangan (opsional)</label>
@@ -1449,6 +1449,14 @@ function renderGaleriList() {
 function previewGaleriFoto(evt) {
   const file = evt.target.files[0];
   if (!file) return;
+  const maxBytes = 50 * 1024 * 1024; // 50MB, batas dari plan Supabase yang dipakai
+  if (file.size > maxBytes) {
+    showToast(`File ${(file.size / 1024 / 1024).toFixed(1)}MB, melebihi batas 50MB. Kompres dulu ya.`);
+    evt.target.value = '';
+    document.getElementById('galeriFotoPreview').classList.add('hidden');
+    document.getElementById('galeriVideoPreview').classList.add('hidden');
+    return;
+  }
   const imgPreview = document.getElementById('galeriFotoPreview');
   const videoPreview = document.getElementById('galeriVideoPreview');
   const url = URL.createObjectURL(file);
